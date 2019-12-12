@@ -19,6 +19,7 @@ const createFilterMiddleware = require('eth-json-rpc-filters')
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager')
 const createLoggerMiddleware = require('./lib/createLoggerMiddleware')
 const createOriginMiddleware = require('./lib/createOriginMiddleware')
+const createTabIdMiddleware = require('./lib/createTabIdMiddleware')
 import createOnboardingMiddleware from './lib/createOnboardingMiddleware'
 const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddleware')
 const { setupMultiplex } = require('./lib/stream-utils.js')
@@ -1448,6 +1449,10 @@ module.exports = class MetamaskController extends EventEmitter {
 
     // append origin to each request
     engine.push(createOriginMiddleware({ origin }))
+    // append tabId to each request if it exists
+    if (tabId) {
+      engine.push(createTabIdMiddleware({ tabId }))
+    }
     // logging
     engine.push(createLoggerMiddleware({ origin }))
     engine.push(createOnboardingMiddleware({
