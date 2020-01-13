@@ -46,6 +46,10 @@ export default function reduceMetamask (state = {}, action) {
     participateInMetaMetrics: null,
     metaMetricsSendCount: 0,
     nextNonce: null,
+    frequentRpcListDetail: [
+      { nickname: 'Main Ethereum Network(Elastos)', rpcPrefs: {}, rpcUrl: 'http://mainrpc.elaeth.io', ticker: 'ELA' },
+      { nickname: 'test Ethereum Network(Elastos)', rpcPrefs: {}, rpcUrl: 'http://rpc.elaeth.io', ticker: 'ELA' },
+    ],
     ...state,
   }
 
