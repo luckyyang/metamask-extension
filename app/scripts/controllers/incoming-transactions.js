@@ -11,6 +11,8 @@ import {
   KOVAN,
   GOERLI,
   MAINNET,
+  ELAETH_MAINNET,
+  ELAETH_TESTNET,
   NETWORK_TYPE_TO_ID_MAP,
 } from './network/enums'
 
@@ -48,6 +50,9 @@ export default class IncomingTransactionsController {
         [KOVAN]: null,
         [GOERLI]: null,
         [MAINNET]: null,
+        // elaeth
+        [ELAETH_MAINNET]: null,
+        [ELAETH_TESTNET]: null,
       }, ...opts.initState,
     }
     this.store = new ObservableStore(initState)

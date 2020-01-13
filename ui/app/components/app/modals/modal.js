@@ -46,7 +46,7 @@ const modalContainerLaptopStyle = {
 
 const modalContainerMobileStyle = {
   ...modalContainerBaseStyle,
-  width: '309px',
+  width: '320px',
   top: '12.5%',
 }
 

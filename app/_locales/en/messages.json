@@ -1234,6 +1234,12 @@
   "goerli": {
     "message": "Goerli Test Network"
   },
+  "elaethmainnet": {
+    "message": "Main Ethereum Network(Elastos)"
+  },
+  "elaethtestnet": {
+    "message": "Test Ethereum Network(Elastos)"
+  },
   "save": {
     "message": "Save"
   },

@@ -228,7 +228,7 @@ class NetworkDropdown extends Component {
         style={{
           position: 'absolute',
           top: '58px',
-          width: '309px',
+          width: '320px',
           zIndex: '55px',
         }}
         innerStyle={{
@@ -244,6 +244,52 @@ class NetworkDropdown extends Component {
             {this.context.t('defaultNetwork')}
           </div>
         </div>
+        <DropdownMenuItem
+          key="elaethmain"
+          closeMenu={() => this.props.hideNetworkDropdown()}
+          onClick={() => this.handleClick('elaethmainnet')}
+          style={{ ...dropdownMenuItemStyle, borderColor: '#038789' }}
+        >
+          {
+            providerType === 'elaethmainnet'
+              ? <i className="fa fa-check" />
+              : <div className="network-check__transparent">✓</div>
+          }
+          <NetworkDropdownIcon backgroundColor="#0000FF" isSelected={providerType === 'elaethmainnet'} />
+          <span
+            className="network-name-item"
+            style={{
+              color: providerType === 'elaethmainnet'
+                ? '#ffffff'
+                : '#9b9b9b',
+            }}
+          >
+            {this.context.t('elaethmainnet')}
+          </span>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          key="elaethtest"
+          closeMenu={() => this.props.hideNetworkDropdown()}
+          onClick={() => this.handleClick('elaethtestnet')}
+          style={{ ...dropdownMenuItemStyle, borderColor: '#038789' }}
+        >
+          {
+            providerType === 'elaethtestnet'
+              ? <i className="fa fa-check" />
+              : <div className="network-check__transparent">✓</div>
+          }
+          <NetworkDropdownIcon backgroundColor="#00FF00" isSelected={providerType === 'elaethtestnet'} />
+          <span
+            className="network-name-item"
+            style={{
+              color: providerType === 'elaethtestnet'
+                ? '#ffffff'
+                : '#9b9b9b',
+            }}
+          >
+            {this.context.t('elaethtestnet')}
+          </span>
+        </DropdownMenuItem>
         <DropdownMenuItem
           key="main"
           closeMenu={() => this.props.hideNetworkDropdown()}

@@ -11,6 +11,9 @@ export const NETWORK_TYPES = {
   RINKEBY: 'rinkeby',
   ROPSTEN: 'ropsten',
   GOERLI: 'goerli',
+  // elaeth
+  ELAETH_MAINNET: 'elaethmainnet',
+  ELAETH_TESTNET: 'elaethtestnet',
 }
 
 export const GAS_ESTIMATE_TYPES = {

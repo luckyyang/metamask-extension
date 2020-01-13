@@ -1,5 +1,23 @@
 const defaultNetworksData = [
   {
+    labelKey: 'elaethmainnet',
+    iconColor: '#0000FF',
+    providerType: 'mainnet',
+    rpcUrl: 'https://mainrpc.elaeth.io',
+    chainId: '1',
+    ticker: 'ELA',
+    blockExplorerUrl: 'https://explorer.elaeth.io',
+  },
+  {
+    labelKey: 'elaethtestnet',
+    iconColor: '#00FF00',
+    providerType: 'testnet',
+    rpcUrl: 'https://rpc.elaeth.io',
+    chainId: '3',
+    ticker: 'ELA',
+    blockExplorerUrl: 'https://testnet.elaeth.io',
+  },
+  {
     labelKey: 'mainnet',
     iconColor: '#29B6AF',
     providerType: 'mainnet',
