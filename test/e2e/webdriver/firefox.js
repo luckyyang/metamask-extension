@@ -20,20 +20,25 @@ const GeckoDriverCommand = {
  * A wrapper around a {@code WebDriver} instance exposing Firefox-specific functionality
  */
 class FirefoxDriver {
+
   /**
    * Builds a {@link FirefoxDriver} instance
-   * @param {{extensionPath: string}} options the options for the build
-   * @return {Promise<{driver: !ThenableWebDriver, extensionUrl: string, extensionId: string}>}
+   * @param {{extensionPath: string}} options - the options for the build
+   * @returns {Promise<{driver: !ThenableWebDriver, extensionUrl: string, extensionId: string}>}
    */
-  static async build ({ extensionPath, responsive }) {
+  static async build ({ extensionPath, responsive, port }) {
     const templateProfile = fs.mkdtempSync(TEMP_PROFILE_PATH_PREFIX)
-    const profile = new firefox.Profile(templateProfile)
     const options = new firefox.Options()
-      .setProfile(profile)
-    const driver = new Builder()
+      .setProfile(templateProfile)
+    const builder = new Builder()
       .forBrowser('firefox')
       .setFirefoxOptions(options)
-      .build()
+    if (port) {
+      const service = new firefox.ServiceBuilder()
+        .setPort(port)
+      builder.setFirefoxService(service)
+    }
+    const driver = builder.build()
     const fxDriver = new FirefoxDriver(driver)
 
     await fxDriver.init()
@@ -42,19 +47,19 @@ class FirefoxDriver {
     const internalExtensionId = await fxDriver.getInternalId()
 
     if (responsive) {
-      driver.manage().window().setSize(320, 600)
+      await driver.manage().window().setRect({ width: 320, height: 600 })
     }
 
     return {
       driver,
       extensionId,
-      extensionUrl: `moz-extension://${internalExtensionId}/home.html`,
+      extensionUrl: `moz-extension://${internalExtensionId}`,
     }
   }
 
   /**
    * @constructor
-   * @param {!ThenableWebDriver} driver a {@code WebDriver} instance
+   * @param {!ThenableWebDriver} driver - a {@code WebDriver} instance
    */
   constructor (driver) {
     this._driver = driver
@@ -62,7 +67,7 @@ class FirefoxDriver {
 
   /**
    * Initializes the driver
-   * @return {Promise<void>}
+   * @returns {Promise<void>}
    */
   async init () {
     await this._driver.getExecutor()
@@ -75,20 +80,20 @@ class FirefoxDriver {
 
   /**
    * Installs the extension at the given path
-   * @param {string} addonPath the path to the unpacked extension or XPI
-   * @return {Promise<string>} the extension ID
+   * @param {string} addonPath - the path to the unpacked extension or XPI
+   * @returns {Promise<string>} - the extension ID
    */
   async installExtension (addonPath) {
     const cmd = new Command(GeckoDriverCommand.INSTALL_ADDON)
       .setParameter('path', path.resolve(addonPath))
       .setParameter('temporary', true)
 
-    return await this._driver.schedule(cmd)
+    return await this._driver.execute(cmd)
   }
 
   /**
    * Returns the Internal UUID for the given extension
-   * @return {Promise<string>} the Internal UUID for the given extension
+   * @returns {Promise<string>} - the Internal UUID for the given extension
    */
   async getInternalId () {
     await this._driver.get('about:debugging#addons')

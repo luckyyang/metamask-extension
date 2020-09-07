@@ -1,20 +1,20 @@
-import React from 'react'
 import assert from 'assert'
+import React from 'react'
 import { shallow } from 'enzyme'
 import sinon from 'sinon'
 import CancelTransaction from '../cancel-transaction.component'
 import CancelTransactionGasFee from '../cancel-transaction-gas-fee'
 import Modal from '../../../modal'
 
-describe('CancelTransaction Component', () => {
-  const t = key => key
+describe('CancelTransaction Component', function () {
+  const t = (key) => key
 
-  it('should render a CancelTransaction modal', () => {
+  it('should render a CancelTransaction modal', function () {
     const wrapper = shallow(
       <CancelTransaction
         newGasFee="0x1319718a5000"
       />,
-      { context: { t } }
+      { context: { t } },
     )
 
     assert.ok(wrapper)
@@ -25,7 +25,7 @@ describe('CancelTransaction Component', () => {
     assert.equal(wrapper.find('.cancel-transaction__description').text(), 'attemptToCancelDescription')
   })
 
-  it('should pass the correct props to the Modal component', async () => {
+  it('should pass the correct props to the Modal component', async function () {
     const createCancelTransactionSpy = sinon.stub().callsFake(() => Promise.resolve())
     const hideModalSpy = sinon.spy()
 
@@ -34,9 +34,9 @@ describe('CancelTransaction Component', () => {
         defaultNewGasPrice="0x3b9aca00"
         createCancelTransaction={createCancelTransactionSpy}
         hideModal={hideModalSpy}
-        showTransactionConfirmedModal={() => {}}
+        showTransactionConfirmedModal={() => undefined}
       />,
-      { context: { t } }
+      { context: { t } },
     )
 
     assert.equal(wrapper.find(Modal).length, 1)

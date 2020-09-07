@@ -1,5 +1,6 @@
-const assert = require('assert')
-const migrationTemplate = require('../../../app/scripts/migrations/030.js')
+import assert from 'assert'
+import migrationTemplate from '../../../app/scripts/migrations/030'
+
 const storage = {
   meta: {},
   data: {
@@ -22,8 +23,8 @@ const storage = {
   },
 }
 
-describe('storage is migrated successfully', () => {
-  it('should work', (done) => {
+describe('storage is migrated successfully', function () {
+  it('should work', function (done) {
     migrationTemplate.migrate(storage)
       .then((migratedData) => {
         assert.equal(migratedData.meta.version, 30)

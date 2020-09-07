@@ -1,25 +1,17 @@
 import { connect } from 'react-redux'
-import ConfirmSeedPhrase from './confirm-seed-phrase.component'
 import {
   setSeedPhraseBackedUp,
-  hideSeedPhraseBackupAfterOnboarding,
   initializeThreeBox,
+  setCompletedOnboarding,
 } from '../../../../store/actions'
+import ConfirmSeedPhrase from './confirm-seed-phrase.component'
 
-const mapStateToProps = state => {
-  const { appState: { showingSeedPhraseBackupAfterOnboarding } } = state
-
-  return {
-    showingSeedPhraseBackupAfterOnboarding,
-  }
-}
-
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     setSeedPhraseBackedUp: (seedPhraseBackupState) => dispatch(setSeedPhraseBackedUp(seedPhraseBackupState)),
-    hideSeedPhraseBackupAfterOnboarding: () => dispatch(hideSeedPhraseBackupAfterOnboarding()),
     initializeThreeBox: () => dispatch(initializeThreeBox()),
+    completeOnboarding: () => dispatch(setCompletedOnboarding()),
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(ConfirmSeedPhrase)
+export default connect(null, mapDispatchToProps)(ConfirmSeedPhrase)

@@ -1,15 +1,12 @@
+import '../../app/scripts/lib/freezeGlobals'
 
-/* eslint-disable no-native-reassign */
+import assert from 'assert'
 
-// this is what we're testing
-require('../../app/scripts/lib/freezeGlobals')
+describe('Promise global is immutable', function () {
 
-const assert = require('assert')
-
-describe('Promise global is immutable', () => {
-
-  it('throws when reassinging promise (syntax 1)', () => {
+  it('throws when reassinging promise (syntax 1)', function () {
     try {
+      // eslint-disable-next-line no-global-assign,no-native-reassign
       Promise = {}
       assert.fail('did not throw error')
     } catch (err) {
@@ -17,7 +14,7 @@ describe('Promise global is immutable', () => {
     }
   })
 
-  it('throws when reassinging promise (syntax 2)', () => {
+  it('throws when reassinging promise (syntax 2)', function () {
     try {
       global.Promise = {}
       assert.fail('did not throw error')
@@ -26,16 +23,16 @@ describe('Promise global is immutable', () => {
     }
   })
 
-  it('throws when mutating existing Promise property', () => {
+  it('throws when mutating existing Promise property', function () {
     try {
-      Promise.all = () => {}
+      Promise.all = () => undefined
       assert.fail('did not throw error')
     } catch (err) {
       assert.ok(err, 'did throw error')
     }
   })
 
-  it('throws when adding new Promise property', () => {
+  it('throws when adding new Promise property', function () {
     try {
       Promise.foo = 'bar'
       assert.fail('did not throw error')
@@ -44,7 +41,7 @@ describe('Promise global is immutable', () => {
     }
   })
 
-  it('throws when deleting Promise from global', () => {
+  it('throws when deleting Promise from global', function () {
     try {
       delete global.Promise
       assert.fail('did not throw error')

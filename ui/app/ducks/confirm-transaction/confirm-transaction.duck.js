@@ -1,9 +1,10 @@
+import { addHexPrefix } from 'ethereumjs-util'
 import {
   conversionRateSelector,
   currentCurrencySelector,
   unconfirmedTransactionsHashSelector,
   getNativeCurrency,
-} from '../../selectors/confirm-transaction'
+} from '../../selectors'
 
 import {
   getValueFromWeiHex,
@@ -21,10 +22,9 @@ import {
 } from '../../helpers/utils/transactions.util'
 
 import { conversionUtil } from '../../helpers/utils/conversion-util'
-import { addHexPrefix } from 'ethereumjs-util'
 
 // Actions
-const createActionType = action => `metamask/confirm-transaction/${action}`
+const createActionType = (action) => `metamask/confirm-transaction/${action}`
 
 const UPDATE_TX_DATA = createActionType('UPDATE_TX_DATA')
 const CLEAR_TX_DATA = createActionType('CLEAR_TX_DATA')
@@ -66,102 +66,106 @@ const initState = {
 }
 
 // Reducer
-export default function reducer ({ confirmTransaction: confirmState = initState }, action = {}) {
+export default function reducer (state = initState, action = {}) {
   switch (action.type) {
     case UPDATE_TX_DATA:
       return {
-        ...confirmState,
+        ...state,
         txData: {
           ...action.payload,
         },
       }
     case CLEAR_TX_DATA:
       return {
-        ...confirmState,
+        ...state,
         txData: {},
       }
     case UPDATE_TOKEN_DATA:
       return {
-        ...confirmState,
+        ...state,
         tokenData: {
           ...action.payload,
         },
       }
     case CLEAR_TOKEN_DATA:
       return {
-        ...confirmState,
+        ...state,
         tokenData: {},
       }
     case UPDATE_METHOD_DATA:
       return {
-        ...confirmState,
+        ...state,
         methodData: {
           ...action.payload,
         },
       }
     case CLEAR_METHOD_DATA:
       return {
-        ...confirmState,
+        ...state,
         methodData: {},
       }
-    case UPDATE_TRANSACTION_AMOUNTS:
+    case UPDATE_TRANSACTION_AMOUNTS: {
       const { fiatTransactionAmount, ethTransactionAmount, hexTransactionAmount } = action.payload
       return {
-        ...confirmState,
-        fiatTransactionAmount: fiatTransactionAmount || confirmState.fiatTransactionAmount,
-        ethTransactionAmount: ethTransactionAmount || confirmState.ethTransactionAmount,
-        hexTransactionAmount: hexTransactionAmount || confirmState.hexTransactionAmount,
+        ...state,
+        fiatTransactionAmount: fiatTransactionAmount || state.fiatTransactionAmount,
+        ethTransactionAmount: ethTransactionAmount || state.ethTransactionAmount,
+        hexTransactionAmount: hexTransactionAmount || state.hexTransactionAmount,
       }
-    case UPDATE_TRANSACTION_FEES:
+    }
+    case UPDATE_TRANSACTION_FEES: {
       const { fiatTransactionFee, ethTransactionFee, hexTransactionFee } = action.payload
       return {
-        ...confirmState,
-        fiatTransactionFee: fiatTransactionFee || confirmState.fiatTransactionFee,
-        ethTransactionFee: ethTransactionFee || confirmState.ethTransactionFee,
-        hexTransactionFee: hexTransactionFee || confirmState.hexTransactionFee,
+        ...state,
+        fiatTransactionFee: fiatTransactionFee || state.fiatTransactionFee,
+        ethTransactionFee: ethTransactionFee || state.ethTransactionFee,
+        hexTransactionFee: hexTransactionFee || state.hexTransactionFee,
       }
-    case UPDATE_TRANSACTION_TOTALS:
+    }
+    case UPDATE_TRANSACTION_TOTALS: {
       const { fiatTransactionTotal, ethTransactionTotal, hexTransactionTotal } = action.payload
       return {
-        ...confirmState,
-        fiatTransactionTotal: fiatTransactionTotal || confirmState.fiatTransactionTotal,
-        ethTransactionTotal: ethTransactionTotal || confirmState.ethTransactionTotal,
-        hexTransactionTotal: hexTransactionTotal || confirmState.hexTransactionTotal,
+        ...state,
+        fiatTransactionTotal: fiatTransactionTotal || state.fiatTransactionTotal,
+        ethTransactionTotal: ethTransactionTotal || state.ethTransactionTotal,
+        hexTransactionTotal: hexTransactionTotal || state.hexTransactionTotal,
       }
-    case UPDATE_TOKEN_PROPS:
+    }
+    case UPDATE_TOKEN_PROPS: {
       const { tokenSymbol = '', tokenDecimals = '' } = action.payload
       return {
-        ...confirmState,
+        ...state,
         tokenProps: {
-          ...confirmState.tokenProps,
+          ...state.tokenProps,
           tokenSymbol,
           tokenDecimals,
         },
       }
+    }
     case UPDATE_NONCE:
       return {
-        ...confirmState,
+        ...state,
         nonce: action.payload,
       }
     case UPDATE_TO_SMART_CONTRACT:
       return {
-        ...confirmState,
+        ...state,
         toSmartContract: action.payload,
       }
     case FETCH_DATA_START:
       return {
-        ...confirmState,
+        ...state,
         fetchingData: true,
       }
     case FETCH_DATA_END:
       return {
-        ...confirmState,
+        ...state,
         fetchingData: false,
       }
     case CLEAR_CONFIRM_TRANSACTION:
       return initState
     default:
-      return confirmState
+      return state
   }
 }
 
@@ -254,16 +258,14 @@ export function setFetchingData (isFetching) {
 }
 
 export function updateGasAndCalculate ({ gasLimit, gasPrice }) {
-  gasLimit = addHexPrefix(gasLimit)
-  gasPrice = addHexPrefix(gasPrice)
   return (dispatch, getState) => {
     const { confirmTransaction: { txData } } = getState()
     const newTxData = {
       ...txData,
       txParams: {
         ...txData.txParams,
-        gas: gasLimit,
-        gasPrice,
+        gas: addHexPrefix(gasLimit),
+        gasPrice: addHexPrefix(gasPrice),
       },
     }
 
@@ -364,10 +366,8 @@ export function setTransactionToConfirm (transactionId) {
       if (txParams.data) {
         const { data } = txParams
 
-
         const tokenData = getTokenData(data)
         dispatch(updateTokenData(tokenData))
-
       }
 
       if (txParams.nonce) {

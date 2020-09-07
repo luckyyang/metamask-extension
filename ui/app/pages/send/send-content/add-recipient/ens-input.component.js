@@ -1,15 +1,15 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import c from 'classnames'
-import { isValidENSAddress, isValidAddress, isValidAddressHead } from '../../../../helpers/utils/util'
-import { ellipsify } from '../../send.utils'
+import classnames from 'classnames'
 
-import debounce from 'debounce'
+import { debounce } from 'lodash'
 import copyToClipboard from 'copy-to-clipboard/index'
 import ENS from 'ethjs-ens'
-import networkMap from 'ethjs-ens/lib/network-map.json'
+import networkMap from 'ethereum-ens-network-map'
 import log from 'loglevel'
-
+import { ellipsify } from '../../send.utils'
+import { isValidDomainName, isValidAddress, isValidAddressHead } from '../../../../helpers/utils/util'
+import { MAINNET_NETWORK_ID } from '../../../../../../app/scripts/controllers/network/enums'
 
 // Local Constants
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
@@ -42,7 +42,7 @@ export default class EnsInput extends Component {
   }
 
   componentDidMount () {
-    const network = this.props.network
+    const { network } = this.props
     const networkHasEnsSupport = getNetworkEnsSupport(network)
     this.setState({ ensResolution: ZERO_ADDRESS })
 
@@ -78,8 +78,9 @@ export default class EnsInput extends Component {
     updateEnsResolutionError('')
   }
 
-  lookupEnsName = (recipient) => {
-    recipient = recipient.trim()
+  lookupEnsName = (ensName) => {
+    const { network } = this.props
+    const recipient = ensName.trim()
 
     log.info(`ENS attempting to resolve name: ${recipient}`)
     this.ens.lookup(recipient)
@@ -93,8 +94,8 @@ export default class EnsInput extends Component {
         this.props.updateEnsResolution(address)
       })
       .catch((reason) => {
-        if (isValidENSAddress(recipient) && reason.message === 'ENS name not defined.') {
-          this.props.updateEnsResolutionError(this.context.t('ensNotFoundOnCurrentNetwork'))
+        if (isValidDomainName(recipient) && reason.message === 'ENS name not defined.') {
+          this.props.updateEnsResolutionError(network === MAINNET_NETWORK_ID ? this.context.t('noAddressForName') : this.context.t('ensNotFoundOnCurrentNetwork'))
         } else {
           log.error(reason)
           this.props.updateEnsResolutionError(reason.message)
@@ -102,15 +103,15 @@ export default class EnsInput extends Component {
       })
   }
 
-  onPaste = event => {
-    event.clipboardData.items[0].getAsString(text => {
+  onPaste = (event) => {
+    event.clipboardData.items[0].getAsString((text) => {
       if (isValidAddress(text)) {
         this.props.onPaste(text)
       }
     })
   }
 
-  onChange = e => {
+  onChange = (e) => {
     const { network, onChange, updateEnsResolution, updateEnsResolutionError, onValidAddressTyped } = this.props
     const input = e.target.value
     const networkHasEnsSupport = getNetworkEnsSupport(network)
@@ -122,11 +123,11 @@ export default class EnsInput extends Component {
 
     if (!networkHasEnsSupport && !isValidAddress(input) && !isValidAddressHead(input)) {
       updateEnsResolution('')
-      updateEnsResolutionError(!networkHasEnsSupport ? 'Network does not support ENS' : '')
+      updateEnsResolutionError(networkHasEnsSupport ? '' : 'Network does not support ENS')
       return
     }
 
-    if (isValidENSAddress(input)) {
+    if (isValidDomainName(input)) {
       this.lookupEnsName(input)
     } else if (onValidAddressTyped && isValidAddress(input)) {
       onValidAddressTyped(input)
@@ -146,9 +147,9 @@ export default class EnsInput extends Component {
     }
 
     return (
-      <div className={c('ens-input', className)}>
+      <div className={classnames('ens-input', className)}>
         <div
-          className={c('ens-input__wrapper', {
+          className={classnames('ens-input__wrapper', {
             'ens-input__wrapper__status-icon--error': false,
             'ens-input__wrapper__status-icon--valid': false,
           })}
@@ -163,9 +164,10 @@ export default class EnsInput extends Component {
             onPaste={this.onPaste}
             value={selectedAddress || input}
             autoFocus
+            data-testid="ens-input"
           />
           <div
-            className={c('ens-input__wrapper__action-icon', {
+            className={classnames('ens-input__wrapper__action-icon', {
               'ens-input__wrapper__action-icon--erase': input,
               'ens-input__wrapper__action-icon--qrcode': !input,
             })}
@@ -187,9 +189,8 @@ export default class EnsInput extends Component {
     const { className, selectedAddress, selectedName, contact = {} } = this.props
     const name = contact.name || selectedName
 
-
     return (
-      <div className={c('ens-input', className)}>
+      <div className={classnames('ens-input', className)}>
         <div
           className="ens-input__wrapper ens-input__wrapper--valid"
         >
@@ -235,7 +236,7 @@ export default class EnsInput extends Component {
     const { loadingEns, ensFailure, ensResolution, toError } = this.state
 
     if (toError) {
-      return
+      return null
     }
 
     if (loadingEns) {
@@ -260,7 +261,7 @@ export default class EnsInput extends Component {
         <i
           className="fa fa-check-circle fa-lg cursor-pointer"
           style={{ color: 'green' }}
-          onClick={event => {
+          onClick={(event) => {
             event.preventDefault()
             event.stopPropagation()
             copyToClipboard(ensResolution)
@@ -268,6 +269,8 @@ export default class EnsInput extends Component {
         />
       )
     }
+
+    return null
   }
 }
 

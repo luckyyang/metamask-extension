@@ -1,46 +1,50 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
-import deepEqual from 'fast-deep-equal'
-import { PermissionPageContainerContent } from '.'
+import { isEqual } from 'lodash'
 import { PageContainerFooter } from '../../ui/page-container'
+import PermissionsConnectFooter from '../permissions-connect-footer'
+import { PermissionPageContainerContent } from '.'
 
 export default class PermissionPageContainer extends Component {
 
   static propTypes = {
     approvePermissionsRequest: PropTypes.func.isRequired,
     rejectPermissionsRequest: PropTypes.func.isRequired,
-    selectedIdentity: PropTypes.object,
-    permissionsDescriptions: PropTypes.object.isRequired,
+    selectedIdentities: PropTypes.array,
+    allIdentitiesSelected: PropTypes.bool,
     request: PropTypes.object,
-    redirect: PropTypes.bool,
-    permissionRejected: PropTypes.bool,
     requestMetadata: PropTypes.object,
-    targetDomainMetadata: PropTypes.object.isRequired,
-  };
+    targetDomainMetadata: PropTypes.shape({
+      extensionId: PropTypes.string,
+      icon: PropTypes.string,
+      host: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      origin: PropTypes.string.isRequired,
+    }),
+  }
 
   static defaultProps = {
-    redirect: null,
-    permissionRejected: null,
     request: {},
     requestMetadata: {},
-    selectedIdentity: {},
-  };
+    selectedIdentities: [],
+    allIdentitiesSelected: false,
+  }
 
   static contextTypes = {
     t: PropTypes.func,
     metricsEvent: PropTypes.func,
-  };
+  }
 
   state = {
     selectedPermissions: this.getRequestedMethodState(
-      this.getRequestedMethodNames(this.props)
+      this.getRequestedMethodNames(this.props),
     ),
   }
 
   componentDidUpdate () {
     const newMethodNames = this.getRequestedMethodNames(this.props)
 
-    if (!deepEqual(Object.keys(this.state.selectedPermissions), newMethodNames)) {
+    if (!isEqual(Object.keys(this.state.selectedPermissions), newMethodNames)) {
       // this should be a new request, so just overwrite
       this.setState({
         selectedPermissions: this.getRequestedMethodState(newMethodNames),
@@ -54,7 +58,7 @@ export default class PermissionPageContainer extends Component {
         acc[methodName] = true
         return acc
       },
-      {}
+      {},
     )
   }
 
@@ -62,7 +66,7 @@ export default class PermissionPageContainer extends Component {
     return Object.keys(props.request.permissions || {})
   }
 
-  onPermissionToggle = methodName => {
+  onPermissionToggle = (methodName) => {
     this.setState({
       selectedPermissions: {
         ...this.state.selectedPermissions,
@@ -88,7 +92,7 @@ export default class PermissionPageContainer extends Component {
 
   onSubmit = () => {
     const {
-      request: _request, approvePermissionsRequest, rejectPermissionsRequest, selectedIdentity,
+      request: _request, approvePermissionsRequest, rejectPermissionsRequest, selectedIdentities,
     } = this.props
 
     const request = {
@@ -96,14 +100,14 @@ export default class PermissionPageContainer extends Component {
       permissions: { ..._request.permissions },
     }
 
-    Object.keys(this.state.selectedPermissions).forEach(key => {
+    Object.keys(this.state.selectedPermissions).forEach((key) => {
       if (!this.state.selectedPermissions[key]) {
         delete request.permissions[key]
       }
     })
 
     if (Object.keys(request.permissions).length > 0) {
-      approvePermissionsRequest(request, [selectedIdentity.address])
+      approvePermissionsRequest(request, selectedIdentities.map((selectedIdentity) => selectedIdentity.address))
     } else {
       rejectPermissionsRequest(request.metadata.id)
     }
@@ -113,10 +117,8 @@ export default class PermissionPageContainer extends Component {
     const {
       requestMetadata,
       targetDomainMetadata,
-      permissionsDescriptions,
-      selectedIdentity,
-      redirect,
-      permissionRejected,
+      selectedIdentities,
+      allIdentitiesSelected,
     } = this.props
 
     return (
@@ -125,26 +127,22 @@ export default class PermissionPageContainer extends Component {
           requestMetadata={requestMetadata}
           domainMetadata={targetDomainMetadata}
           selectedPermissions={this.state.selectedPermissions}
-          permissionsDescriptions={permissionsDescriptions}
           onPermissionToggle={this.onPermissionToggle}
-          selectedAccount={selectedIdentity}
-          redirect={redirect}
-          permissionRejected={permissionRejected}
+          selectedIdentities={selectedIdentities}
+          allIdentitiesSelected={allIdentitiesSelected}
         />
-        { !redirect
-          ? (
-            <PageContainerFooter
-              cancelButtonType="primary"
-              onCancel={() => this.onCancel()}
-              cancelText={this.context.t('cancel')}
-              onSubmit={() => this.onSubmit()}
-              submitText={this.context.t('submit')}
-              submitButtonType="confirm"
-              buttonSizeLarge={false}
-            />
-          )
-          : null
-        }
+        <div className="permission-approval-container__footers">
+          <PermissionsConnectFooter />
+          <PageContainerFooter
+            cancelButtonType="default"
+            onCancel={() => this.onCancel()}
+            cancelText={this.context.t('cancel')}
+            onSubmit={() => this.onSubmit()}
+            submitText={this.context.t('connect')}
+            submitButtonType="confirm"
+            buttonSizeLarge={false}
+          />
+        </div>
       </div>
     )
   }

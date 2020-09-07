@@ -1,5 +1,4 @@
-import AdvancedTab from './advanced-tab.component'
-import { compose } from 'recompose'
+import { compose } from 'redux'
 import { connect } from 'react-redux'
 import { withRouter } from 'react-router-dom'
 import {
@@ -7,19 +6,21 @@ import {
   setFeatureFlag,
   showModal,
   setShowFiatConversionOnTestnetsPreference,
-  setAutoLogoutTimeLimit,
+  setAutoLockTimeLimit,
   setThreeBoxSyncingPermission,
   turnThreeBoxSyncingOnAndInitialize,
   setUseNonceField,
   setIpfsGateway,
 } from '../../../store/actions'
-import { preferencesSelector } from '../../../selectors/selectors'
+import { getPreferences } from '../../../selectors'
+import AdvancedTab from './advanced-tab.component'
 
-export const mapStateToProps = state => {
+export const mapStateToProps = (state) => {
   const { appState: { warning }, metamask } = state
   const {
     featureFlags: {
       sendHexData,
+      transactionTime,
       advancedInlineGas,
     } = {},
     threeBoxSyncingAllowed,
@@ -27,14 +28,15 @@ export const mapStateToProps = state => {
     useNonceField,
     ipfsGateway,
   } = metamask
-  const { showFiatInTestnets, autoLogoutTimeLimit } = preferencesSelector(state)
+  const { showFiatInTestnets, autoLockTimeLimit } = getPreferences(state)
 
   return {
     warning,
     sendHexData,
     advancedInlineGas,
+    transactionTime,
     showFiatInTestnets,
-    autoLogoutTimeLimit,
+    autoLockTimeLimit,
     threeBoxSyncingAllowed,
     threeBoxDisabled,
     useNonceField,
@@ -42,27 +44,28 @@ export const mapStateToProps = state => {
   }
 }
 
-export const mapDispatchToProps = dispatch => {
+export const mapDispatchToProps = (dispatch) => {
   return {
-    setHexDataFeatureFlag: shouldShow => dispatch(setFeatureFlag('sendHexData', shouldShow)),
-    displayWarning: warning => dispatch(displayWarning(warning)),
+    setHexDataFeatureFlag: (shouldShow) => dispatch(setFeatureFlag('sendHexData', shouldShow)),
+    displayWarning: (warning) => dispatch(displayWarning(warning)),
     showResetAccountConfirmationModal: () => dispatch(showModal({ name: 'CONFIRM_RESET_ACCOUNT' })),
-    setAdvancedInlineGasFeatureFlag: shouldShow => dispatch(setFeatureFlag('advancedInlineGas', shouldShow)),
-    setUseNonceField: value => dispatch(setUseNonceField(value)),
-    setShowFiatConversionOnTestnetsPreference: value => {
+    setAdvancedInlineGasFeatureFlag: (shouldShow) => dispatch(setFeatureFlag('advancedInlineGas', shouldShow)),
+    setTransactionTimeFeatureFlag: (shouldShow) => dispatch(setFeatureFlag('transactionTime', shouldShow)),
+    setUseNonceField: (value) => dispatch(setUseNonceField(value)),
+    setShowFiatConversionOnTestnetsPreference: (value) => {
       return dispatch(setShowFiatConversionOnTestnetsPreference(value))
     },
-    setAutoLogoutTimeLimit: value => {
-      return dispatch(setAutoLogoutTimeLimit(value))
+    setAutoLockTimeLimit: (value) => {
+      return dispatch(setAutoLockTimeLimit(value))
     },
-    setThreeBoxSyncingPermission: newThreeBoxSyncingState => {
+    setThreeBoxSyncingPermission: (newThreeBoxSyncingState) => {
       if (newThreeBoxSyncingState) {
         dispatch(turnThreeBoxSyncingOnAndInitialize())
       } else {
         dispatch(setThreeBoxSyncingPermission(newThreeBoxSyncingState))
       }
     },
-    setIpfsGateway: value => {
+    setIpfsGateway: (value) => {
       return dispatch(setIpfsGateway(value))
     },
   }
@@ -70,5 +73,5 @@ export const mapDispatchToProps = dispatch => {
 
 export default compose(
   withRouter,
-  connect(mapStateToProps, mapDispatchToProps)
+  connect(mapStateToProps, mapDispatchToProps),
 )(AdvancedTab)

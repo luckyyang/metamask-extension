@@ -1,6 +1,4 @@
 
-const version = 24
-
 /*
 
 This migration ensures that the from address in txParams is to lower case for
@@ -8,13 +6,15 @@ all unapproved transactions
 
 */
 
-const clone = require('clone')
+import { cloneDeep } from 'lodash'
 
-module.exports = {
+const version = 24
+
+export default {
   version,
 
-  migrate: async function (originalVersionedData) {
-    const versionedData = clone(originalVersionedData)
+  async migrate (originalVersionedData) {
+    const versionedData = cloneDeep(originalVersionedData)
     versionedData.meta.version = version
     const state = versionedData.data
     const newState = transformState(state)
@@ -28,7 +28,7 @@ function transformState (state) {
   if (!newState.TransactionController) {
     return newState
   }
-  const transactions = newState.TransactionController.transactions
+  const { transactions } = newState.TransactionController
   newState.TransactionController.transactions = transactions.map((txMeta, _) => {
     if (
       txMeta.status === 'unapproved' &&

@@ -1,26 +1,24 @@
 import React, { PureComponent } from 'react'
 import PropTypes from 'prop-types'
-import AccountListItem from '../../../../pages/send/account-list-item/account-list-item.component'
+import AccountListItem from '../../account-list-item'
 import NetworkDisplay from '../../network-display'
 
 export default class SignatureRequestHeader extends PureComponent {
   static propTypes = {
-    selectedAccount: PropTypes.object.isRequired,
+    fromAccount: PropTypes.object,
   }
 
   render () {
-    const { selectedAccount } = this.props
+    const { fromAccount } = this.props
 
     return (
       <div className="signature-request-header">
         <div className="signature-request-header--account">
-          {selectedAccount && (
+          {fromAccount && (
             <AccountListItem
-              displayBalance={false}
-              account={selectedAccount}
+              account={fromAccount}
             />
           )}
-          {name}
         </div>
         <div className="signature-request-header--network">
           <NetworkDisplay colored={false} />

@@ -1,5 +1,3 @@
-/*global Web3*/
-
 // need to make sure we aren't affected by overlapping namespaces
 // and that we dont affect the app with our namespace
 // mostly a fix for web3's BigNumber if AMD's "define" is defined...
@@ -32,13 +30,14 @@ const restoreContextAfterImports = () => {
 
 cleanContextForImports()
 
-const log = require('loglevel')
-const LocalMessageDuplexStream = require('post-message-stream')
-const MetamaskInpageProvider = require('metamask-inpage-provider')
+/* eslint-disable import/first */
+import log from 'loglevel'
+import LocalMessageDuplexStream from 'post-message-stream'
+import { initProvider } from '@metamask/inpage-provider'
 
-// TODO:deprecate:2020-01-13
-require('web3/dist/web3.min.js')
-const setupDappAutoReload = require('./lib/auto-reload.js')
+// TODO:deprecate:2020
+import setupWeb3 from './lib/setupWeb3'
+/* eslint-enable import/first */
 
 restoreContextAfterImports()
 
@@ -54,25 +53,12 @@ const metamaskStream = new LocalMessageDuplexStream({
   target: 'contentscript',
 })
 
-// compose the inpage provider
-const inpageProvider = new MetamaskInpageProvider(metamaskStream)
-
-// set a high max listener count to avoid unnecesary warnings
-inpageProvider.setMaxListeners(100)
-
-// Work around for web3@1.0 deleting the bound `sendAsync` but not the unbound
-// `sendAsync` method on the prototype, causing `this` reference issues
-const proxiedInpageProvider = new Proxy(inpageProvider, {
-  // straight up lie that we deleted the property so that it doesnt
-  // throw an error in strict mode
-  deleteProperty: () => true,
+initProvider({
+  connectionStream: metamaskStream,
 })
 
-//
-// TODO:deprecate:2020-01-13
-//
-
-// setup web3
+// TODO:deprecate:2020
+// Setup web3
 
 if (typeof window.web3 !== 'undefined') {
   throw new Error(`MetaMask detected another web3.
@@ -82,19 +68,5 @@ if (typeof window.web3 !== 'undefined') {
      and try again.`)
 }
 
-const web3 = new Web3(proxiedInpageProvider)
-web3.setProvider = function () {
-  log.debug('MetaMask - overrode web3.setProvider')
-}
-log.debug('MetaMask - injected web3')
-
-proxiedInpageProvider._web3Ref = web3.eth
-
-// setup dapp auto reload AND proxy web3
-setupDappAutoReload(web3, inpageProvider._publicConfigStore)
-
-//
-// end deprecate:2020-01-13
-//
-
-window.ethereum = proxiedInpageProvider
+// proxy web3, assign to window, and set up site auto reload
+setupWeb3(log)

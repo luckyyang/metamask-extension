@@ -1,14 +1,14 @@
-const ethAbi = require('ethereumjs-abi')
-const ethUtil = require('ethereumjs-util')
-const { TOKEN_TRANSFER_FUNCTION_SIGNATURE } = require('../send.constants')
+import ethAbi from 'ethereumjs-abi'
+import ethUtil from 'ethereumjs-util'
+import { TOKEN_TRANSFER_FUNCTION_SIGNATURE } from '../send.constants'
 
-function addHexPrefixToObjectValues (obj) {
+export function addHexPrefixToObjectValues (obj) {
   return Object.keys(obj).reduce((newObj, key) => {
     return { ...newObj, [key]: ethUtil.addHexPrefix(obj[key]) }
   }, {})
 }
 
-function constructTxParams ({ selectedToken, data, to, amount, from, gas, gasPrice }) {
+export function constructTxParams ({ sendToken, data, to, amount, from, gas, gasPrice }) {
   const txParams = {
     data,
     from,
@@ -17,7 +17,7 @@ function constructTxParams ({ selectedToken, data, to, amount, from, gas, gasPri
     gasPrice,
   }
 
-  if (!selectedToken) {
+  if (!sendToken) {
     txParams.value = amount
     txParams.to = to
   }
@@ -25,14 +25,14 @@ function constructTxParams ({ selectedToken, data, to, amount, from, gas, gasPri
   return addHexPrefixToObjectValues(txParams)
 }
 
-function constructUpdatedTx ({
+export function constructUpdatedTx ({
   amount,
   data,
   editingTransactionId,
   from,
   gas,
   gasPrice,
-  selectedToken,
+  sendToken,
   to,
   unapprovedTxs,
 }) {
@@ -50,20 +50,20 @@ function constructUpdatedTx ({
         gas,
         gasPrice,
         value: amount,
-      })
+      }),
     ),
   }
 
-  if (selectedToken) {
-    const data = TOKEN_TRANSFER_FUNCTION_SIGNATURE + Array.prototype.map.call(
-      ethAbi.rawEncode(['address', 'uint256'], [to, ethUtil.addHexPrefix(amount)]),
-      x => ('00' + x.toString(16)).slice(-2)
-    ).join('')
-
+  if (sendToken) {
     Object.assign(editingTx.txParams, addHexPrefixToObjectValues({
       value: '0',
-      to: selectedToken.address,
-      data,
+      to: sendToken.address,
+      data: (
+        TOKEN_TRANSFER_FUNCTION_SIGNATURE + Array.prototype.map.call(
+          ethAbi.rawEncode(['address', 'uint256'], [to, ethUtil.addHexPrefix(amount)]),
+          (x) => (`00${x.toString(16)}`).slice(-2),
+        ).join('')
+      ),
     }))
   }
 
@@ -74,15 +74,8 @@ function constructUpdatedTx ({
   return editingTx
 }
 
-function addressIsNew (toAccounts, newAddress) {
+export function addressIsNew (toAccounts, newAddress) {
   const newAddressNormalized = newAddress.toLowerCase()
   const foundMatching = toAccounts.some(({ address }) => address.toLowerCase() === newAddressNormalized)
   return !foundMatching
-}
-
-module.exports = {
-  addressIsNew,
-  constructTxParams,
-  constructUpdatedTx,
-  addHexPrefixToObjectValues,
 }

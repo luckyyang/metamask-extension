@@ -1,15 +1,15 @@
-const clone = require('clone')
+import { cloneDeep } from 'lodash'
 
-module.exports = function (version, reason, condition) {
+export default function failTxsThat (version, reason, condition) {
   return function (originalVersionedData) {
-    const versionedData = clone(originalVersionedData)
+    const versionedData = cloneDeep(originalVersionedData)
     versionedData.meta.version = version
     try {
       const state = versionedData.data
       const newState = transformState(state, condition, reason)
       versionedData.data = newState
     } catch (err) {
-      console.warn(`MetaMask Migration #${version}` + err.stack)
+      console.warn(`MetaMask Migration #${version}${err.stack}`)
     }
     return Promise.resolve(versionedData)
 
@@ -20,7 +20,7 @@ function transformState (state, condition, reason) {
   const newState = state
   const { TransactionController } = newState
   if (TransactionController && TransactionController.transactions) {
-    const transactions = TransactionController.transactions
+    const { transactions } = TransactionController
 
     newState.TransactionController.transactions = transactions.map((txMeta) => {
       if (!condition(txMeta)) {

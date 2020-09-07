@@ -7,12 +7,11 @@ import {
   signTx,
   updateTransaction,
 } from '../../../store/actions'
-import SendFooter from './send-footer.component'
 import {
   getGasLimit,
   getGasPrice,
   getGasTotal,
-  getSelectedToken,
+  getSendToken,
   getSendAmount,
   getSendEditingTransactionId,
   getSendFromObject,
@@ -22,65 +21,68 @@ import {
   getTokenBalance,
   getUnapprovedTxs,
   getSendErrors,
-} from '../send.selectors'
-import {
   isSendFormInError,
-} from './send-footer.selectors'
+  getGasIsLoading,
+  getRenderableEstimateDataForSmallButtonsFromGWEI,
+  getDefaultActiveButtonIndex,
+} from '../../../selectors'
+import { getMostRecentOverviewPage } from '../../../ducks/history/history'
+import SendFooter from './send-footer.component'
 import {
   addressIsNew,
   constructTxParams,
   constructUpdatedTx,
 } from './send-footer.utils'
-import {
-  getRenderableEstimateDataForSmallButtonsFromGWEI,
-  getDefaultActiveButtonIndex,
-} from '../../../selectors/custom-gas'
 
 export default connect(mapStateToProps, mapDispatchToProps)(SendFooter)
 
 function mapStateToProps (state) {
+
   const gasButtonInfo = getRenderableEstimateDataForSmallButtonsFromGWEI(state)
   const gasPrice = getGasPrice(state)
   const activeButtonIndex = getDefaultActiveButtonIndex(gasButtonInfo, gasPrice)
   const gasEstimateType = activeButtonIndex >= 0
     ? gasButtonInfo[activeButtonIndex].gasEstimateType
     : 'custom'
+  const editingTransactionId = getSendEditingTransactionId(state)
 
   return {
     amount: getSendAmount(state),
     data: getSendHexData(state),
-    editingTransactionId: getSendEditingTransactionId(state),
+    editingTransactionId,
     from: getSendFromObject(state),
     gasLimit: getGasLimit(state),
     gasPrice: getGasPrice(state),
     gasTotal: getGasTotal(state),
     inError: isSendFormInError(state),
-    selectedToken: getSelectedToken(state),
+    sendToken: getSendToken(state),
     to: getSendTo(state),
     toAccounts: getSendToAccounts(state),
     tokenBalance: getTokenBalance(state),
     unapprovedTxs: getUnapprovedTxs(state),
     sendErrors: getSendErrors(state),
     gasEstimateType,
+    gasIsLoading: getGasIsLoading(state),
+    mostRecentOverviewPage: getMostRecentOverviewPage(state),
   }
 }
 
 function mapDispatchToProps (dispatch) {
   return {
     clearSend: () => dispatch(clearSend()),
-    sign: ({ selectedToken, to, amount, from, gas, gasPrice, data }) => {
+    sign: ({ sendToken, to, amount, from, gas, gasPrice, data }) => {
       const txParams = constructTxParams({
         amount,
         data,
         from,
         gas,
         gasPrice,
-        selectedToken,
+        sendToken,
         to,
       })
 
-      selectedToken
-        ? dispatch(signTokenTx(selectedToken.address, to, amount, txParams))
+      sendToken
+        ? dispatch(signTokenTx(sendToken.address, to, amount, txParams))
         : dispatch(signTx(txParams))
     },
     update: ({
@@ -90,7 +92,7 @@ function mapDispatchToProps (dispatch) {
       from,
       gas,
       gasPrice,
-      selectedToken,
+      sendToken,
       to,
       unapprovedTxs,
     }) => {
@@ -101,7 +103,7 @@ function mapDispatchToProps (dispatch) {
         from,
         gas,
         gasPrice,
-        selectedToken,
+        sendToken,
         to,
         unapprovedTxs,
       })

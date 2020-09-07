@@ -1,15 +1,17 @@
 /**
  * Switch the CSS stylesheet used between 'rtl' and 'ltr'
- * @param {('ltr' | 'rtl')} direction Text direction, either left-to-right (ltr) or right-to-left (rtl)
+ * @param {('ltr' | 'rtl' | 'auto')} direction - Text direction, either left-to-right (ltr) or right-to-left (rtl)
+ * @return {Promise<void>}
  */
 const switchDirection = async (direction) => {
   if (direction === 'auto') {
+    // eslint-disable-next-line no-param-reassign
     direction = 'ltr'
   }
   let updatedLink
   Array.from(document.getElementsByTagName('link'))
-    .filter(link => link.rel === 'stylesheet')
-    .forEach(link => {
+    .filter((link) => link.rel === 'stylesheet')
+    .forEach((link) => {
       if (link.title === direction && link.disabled) {
         link.disabled = false
         updatedLink = link
@@ -25,6 +27,8 @@ const switchDirection = async (direction) => {
       updatedLink.onerror = () => reject(new Error(`Failed to load '${direction}' stylesheet`))
     })
   }
+
+  return undefined
 }
 
 export default switchDirection

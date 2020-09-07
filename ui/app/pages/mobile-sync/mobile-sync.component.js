@@ -1,11 +1,9 @@
 import React, { Component } from 'react'
 
-const PropTypes = require('prop-types')
-const classnames = require('classnames')
-const PubNub = require('pubnub')
-const qrCode = require('qrcode-generator')
-
-const { DEFAULT_ROUTE } = require('../../helpers/constants/routes')
+import PropTypes from 'prop-types'
+import classnames from 'classnames'
+import PubNub from 'pubnub'
+import qrCode from 'qrcode-generator'
 
 import Button from '../../components/ui/button'
 import LoadingScreen from '../../components/ui/loading-screen'
@@ -13,6 +11,7 @@ import LoadingScreen from '../../components/ui/loading-screen'
 const PASSWORD_PROMPT_SCREEN = 'PASSWORD_PROMPT_SCREEN'
 const REVEAL_SEED_SCREEN = 'REVEAL_SEED_SCREEN'
 const KEYS_GENERATION_TIME = 30000
+const IDLE_TIME = KEYS_GENERATION_TIME * 4
 
 export default class MobileSyncPage extends Component {
   static contextTypes = {
@@ -24,14 +23,17 @@ export default class MobileSyncPage extends Component {
     selectedAddress: PropTypes.string.isRequired,
     displayWarning: PropTypes.func.isRequired,
     fetchInfoToSync: PropTypes.func.isRequired,
+    mostRecentOverviewPage: PropTypes.string.isRequired,
     requestRevealSeedWords: PropTypes.func.isRequired,
+    exportAccounts: PropTypes.func.isRequired,
+    keyrings: PropTypes.array,
   }
-
 
   state = {
     screen: PASSWORD_PROMPT_SCREEN,
     password: '',
     seedWords: null,
+    importedAccounts: [],
     error: null,
     syncing: false,
     completed: false,
@@ -48,25 +50,57 @@ export default class MobileSyncPage extends Component {
     }
   }
 
+  startIdleTimeout () {
+    this.idleTimeout = setTimeout(() => {
+      this.clearTimeouts()
+      this.goBack()
+    }, IDLE_TIME)
+  }
+
   handleSubmit (event) {
     event.preventDefault()
     this.setState({ seedWords: null, error: null })
     this.props.requestRevealSeedWords(this.state.password)
-      .then(seedWords => {
+      .then((seedWords) => {
         this.startKeysGeneration()
-        this.setState({ seedWords, screen: REVEAL_SEED_SCREEN })
+        this.startIdleTimeout()
+        this.exportAccounts()
+          .then((importedAccounts) => {
+            this.setState({ seedWords, importedAccounts, screen: REVEAL_SEED_SCREEN })
+          })
       })
-      .catch(error => this.setState({ error: error.message }))
+      .catch((error) => this.setState({ error: error.message }))
+  }
+
+  async exportAccounts () {
+    const addresses = []
+    this.props.keyrings.forEach((keyring) => {
+      if (keyring.type === 'Simple Key Pair') {
+        addresses.push(keyring.accounts[0])
+      }
+    })
+    const importedAccounts = await this.props.exportAccounts(this.state.password, addresses)
+    return importedAccounts
   }
 
   startKeysGeneration () {
-    this.handle && clearTimeout(this.handle)
+    this.keysGenerationTimeout && clearTimeout(this.keysGenerationTimeout)
     this.disconnectWebsockets()
     this.generateCipherKeyAndChannelName()
     this.initWebsockets()
-    this.handle = setTimeout(() => {
+    this.keysGenerationTimeout = setTimeout(() => {
       this.startKeysGeneration()
     }, KEYS_GENERATION_TIME)
+  }
+
+  goBack () {
+    const { history, mostRecentOverviewPage } = this.props
+    history.push(mostRecentOverviewPage)
+  }
+
+  clearTimeouts () {
+    this.keysGenerationTimeout && clearTimeout(this.keysGenerationTimeout)
+    this.idleTimeout && clearTimeout(this.idleTimeout)
   }
 
   generateCipherKeyAndChannelName () {
@@ -96,13 +130,13 @@ export default class MobileSyncPage extends Component {
         const { channel, message } = data
         // handle message
         if (channel !== this.channelName || !message) {
-          return false
+          return
         }
 
         if (message.event === 'start-sync') {
           this.startSyncing()
         } else if (message.event === 'connection-info') {
-          this.handle && clearTimeout(this.handle)
+          this.keysGenerationTimeout && clearTimeout(this.keysGenerationTimeout)
           this.disconnectWebsockets()
           this.initWithCipherKeyAndChannelName(message.cipher, message.channel)
           this.initWebsockets()
@@ -131,15 +165,17 @@ export default class MobileSyncPage extends Component {
   // Calculating a PubNub Message Payload Size.
   calculatePayloadSize (channel, message) {
     return encodeURIComponent(
-      channel + JSON.stringify(message)
+      channel + JSON.stringify(message),
     ).length + 100
   }
 
   chunkString (str, size) {
     const numChunks = Math.ceil(str.length / size)
     const chunks = new Array(numChunks)
-    for (let i = 0, o = 0; i < numChunks; ++i, o += size) {
+    for (let i = 0, o = 0; i < numChunks;) {
       chunks[i] = str.substr(o, size)
+      i += 1
+      o += size
     }
     return chunks
   }
@@ -157,18 +193,19 @@ export default class MobileSyncPage extends Component {
           storeInHistory: false,
         },
         (status, response) => {
-          if (!status.error) {
-            resolve()
-          } else {
+          if (status.error) {
             reject(response)
+          } else {
+            resolve()
           }
-        })
+        },
+      )
     })
   }
 
   async startSyncing () {
     if (this.syncing) {
-      return false
+      return
     }
     this.syncing = true
     this.setState({ syncing: true })
@@ -183,6 +220,7 @@ export default class MobileSyncPage extends Component {
       udata: {
         pwd: this.state.password,
         seed: this.state.seedWords,
+        importedAccounts: this.state.importedAccounts,
       },
     })
 
@@ -215,18 +253,18 @@ export default class MobileSyncPage extends Component {
           storeInHistory: false,
         },
         (status, response) => {
-          if (!status.error) {
-            resolve()
-          } else {
+          if (status.error) {
             reject(response)
+          } else {
+            resolve()
           }
-        }
+        },
       )
     })
   }
 
-
   componentWillUnmount () {
+    this.clearTimeouts()
     this.disconnectWebsockets()
   }
 
@@ -289,7 +327,7 @@ export default class MobileSyncPage extends Component {
     const { t } = this.context
 
     return (
-      <form onSubmit={event => this.handleSubmit(event)}>
+      <form onSubmit={(event) => this.handleSubmit(event)}>
         <label className="input-label" htmlFor="password-box">
           {t('enterPasswordContinue')}
         </label>
@@ -299,7 +337,7 @@ export default class MobileSyncPage extends Component {
             placeholder={t('password')}
             id="password-box"
             value={this.state.password}
-            onChange={event => this.setState({ password: event.target.value })}
+            onChange={(event) => this.setState({ password: event.target.value })}
             className={classnames('form-control', {
               'form-control--error': this.state.error,
             })}
@@ -332,7 +370,6 @@ export default class MobileSyncPage extends Component {
           {t('syncWithMobileScanThisCode')}
         </label>
         <div
-          className="div qr-wrapper"
           style={{
             display: 'flex',
             justifyContent: 'center',
@@ -353,7 +390,6 @@ export default class MobileSyncPage extends Component {
 
   renderPasswordPromptFooter () {
     const { t } = this.context
-    const { history } = this.props
     const { password } = this.state
 
     return (
@@ -362,7 +398,7 @@ export default class MobileSyncPage extends Component {
           type="default"
           large
           className="new-account-create-form__button"
-          onClick={() => history.push(DEFAULT_ROUTE)}
+          onClick={() => this.goBack()}
         >
           {t('cancel')}
         </Button>
@@ -370,7 +406,7 @@ export default class MobileSyncPage extends Component {
           type="secondary"
           large
           className="new-account-create-form__button"
-          onClick={event => this.handleSubmit(event)}
+          onClick={(event) => this.handleSubmit(event)}
           disabled={password === ''}
         >
           {t('next')}
@@ -381,7 +417,6 @@ export default class MobileSyncPage extends Component {
 
   renderRevealSeedFooter () {
     const { t } = this.context
-    const { history } = this.props
 
     return (
       <div className="page-container__footer" style={{ padding: 30 }}>
@@ -389,7 +424,7 @@ export default class MobileSyncPage extends Component {
           type="default"
           large
           className="page-container__footer-button"
-          onClick={() => history.push(DEFAULT_ROUTE)}
+          onClick={() => this.goBack()}
         >
           {t('close')}
         </Button>

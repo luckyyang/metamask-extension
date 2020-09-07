@@ -27,6 +27,8 @@ export default class GasModalPageContainer extends Component {
       originalTotalEth: PropTypes.string,
       newTotalFiat: PropTypes.string,
       newTotalEth: PropTypes.string,
+      sendAmount: PropTypes.string,
+      transactionFee: PropTypes.string,
     }),
     onSubmit: PropTypes.func,
     customModalGasPriceInHex: PropTypes.string,
@@ -49,10 +51,10 @@ export default class GasModalPageContainer extends Component {
     const promise = this.props.hideBasic
       ? Promise.resolve(this.props.blockTime)
       : this.props.fetchBasicGasAndTimeEstimates()
-        .then(basicEstimates => basicEstimates.blockTime)
+        .then((basicEstimates) => basicEstimates.blockTime)
 
     promise
-      .then(blockTime => {
+      .then((blockTime) => {
         this.props.fetchGasEstimates(blockTime)
       })
   }

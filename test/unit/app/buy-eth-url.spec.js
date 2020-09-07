@@ -1,5 +1,5 @@
-const assert = require('assert')
-const getBuyEthUrl = require('../../../app/scripts/lib/buy-eth-url')
+import assert from 'assert'
+import getBuyEthUrl from '../../../app/scripts/lib/buy-eth-url'
 
 describe('buy-eth-url', function () {
   const mainnet = {
@@ -20,7 +20,7 @@ describe('buy-eth-url', function () {
   it('returns wyre url with address for network 1', function () {
     const wyreUrl = getBuyEthUrl(mainnet)
 
-    assert.equal(wyreUrl, 'https://dash.sendwyre.com/sign-up')
+    assert.equal(wyreUrl, 'https://pay.sendwyre.com/?dest=ethereum:0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc&destCurrency=ETH&accountId=AC-7AG3W4XH4N2&paymentMethod=debit-card')
 
   })
 

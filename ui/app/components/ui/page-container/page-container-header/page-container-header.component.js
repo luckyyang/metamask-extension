@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import c from 'classnames'
+import classnames from 'classnames'
+import Button from '../../button'
 
 export default class PageContainerHeader extends Component {
   static propTypes = {
@@ -47,7 +48,7 @@ export default class PageContainerHeader extends Component {
 
     return (
       <div
-        className={c('page-container__header', className, {
+        className={classnames('page-container__header', className, {
           'page-container__header--no-padding-bottom': Boolean(tabs),
         })}
       >
@@ -72,7 +73,7 @@ export default class PageContainerHeader extends Component {
 
         {
           onClose && headerCloseText
-            ? <div className="page-container__header-close-text" onClick={() => onClose()}>{ headerCloseText }</div>
+            ? <Button type="link" className="page-container__header-close-text" onClick={() => onClose()}>{ headerCloseText }</Button>
             : onClose && (
               <div
                 className="page-container__header-close"

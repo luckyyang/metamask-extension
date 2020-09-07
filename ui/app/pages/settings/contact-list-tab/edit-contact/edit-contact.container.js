@@ -1,8 +1,7 @@
-import EditContact from './edit-contact.component'
-import { compose } from 'recompose'
+import { compose } from 'redux'
 import { connect } from 'react-redux'
 import { withRouter } from 'react-router-dom'
-import { getAddressBookEntry } from '../../../../selectors/selectors'
+import { getAddressBookEntry } from '../../../../selectors'
 import {
   CONTACT_VIEW_ROUTE,
   CONTACT_MY_ACCOUNTS_ROUTE,
@@ -11,22 +10,24 @@ import {
   CONTACT_LIST_ROUTE,
 } from '../../../../helpers/constants/routes'
 import { addToAddressBook, removeFromAddressBook, setAccountLabel } from '../../../../store/actions'
+import EditContact from './edit-contact.component'
 
 const mapStateToProps = (state, ownProps) => {
   const { location } = ownProps
   const { pathname } = location
-  const pathNameTail = pathname.match(/[^/]+$/)[0]
+  const pathNameTail = pathname.match(/[^/]+$/u)[0]
   const pathNameTailIsAddress = pathNameTail.includes('0x')
   const address = pathNameTailIsAddress ? pathNameTail.toLowerCase() : ownProps.match.params.id
 
-  const { memo, name } = getAddressBookEntry(state, address) || state.metamask.identities[address]
+  const contact = getAddressBookEntry(state, address) || state.metamask.identities[address]
+  const { memo, name } = contact || {}
 
   const chainId = state.metamask.network
 
   const showingMyAccounts = Boolean(pathname.match(CONTACT_MY_ACCOUNTS_EDIT_ROUTE))
 
   return {
-    address,
+    address: contact ? address : null,
     chainId,
     name,
     memo,
@@ -36,7 +37,7 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     addToAddressBook: (recipient, nickname, memo) => dispatch(addToAddressBook(recipient, nickname, memo)),
     removeFromAddressBook: (chainId, addressToRemove) => dispatch(removeFromAddressBook(chainId, addressToRemove)),
@@ -46,5 +47,5 @@ const mapDispatchToProps = dispatch => {
 
 export default compose(
   withRouter,
-  connect(mapStateToProps, mapDispatchToProps)
+  connect(mapStateToProps, mapDispatchToProps),
 )(EditContact)

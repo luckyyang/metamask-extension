@@ -1,13 +1,10 @@
 import { connect } from 'react-redux'
+import { getSelectedIdentity } from '../../../selectors'
 import SelectedAccount from './selected-account.component'
 
-const { getSelectedAddress, getSelectedIdentity } = require('../../../selectors/selectors')
-
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
-    selectedAddress: getSelectedAddress(state),
     selectedIdentity: getSelectedIdentity(state),
-    network: state.metamask.network,
   }
 }
 

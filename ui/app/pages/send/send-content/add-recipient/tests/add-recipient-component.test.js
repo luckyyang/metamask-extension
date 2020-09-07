@@ -1,5 +1,5 @@
-import React from 'react'
 import assert from 'assert'
+import React from 'react'
 import { shallow } from 'enzyme'
 import sinon from 'sinon'
 import AddRecipient from '../add-recipient.component'
@@ -18,7 +18,7 @@ describe('AddRecipient Component', function () {
   let wrapper
   let instance
 
-  beforeEach(() => {
+  beforeEach(function () {
     wrapper = shallow((
       <AddRecipient
         closeToDropdown={propsMethodSpies.closeToDropdown}
@@ -37,11 +37,11 @@ describe('AddRecipient Component', function () {
         nonContacts={[{ address: '0x70F061544cC398520615B5d3e7A3BedD70cd4510', name: 'Fav 7' }]}
         contacts={[{ address: '0x60F061544cC398520615B5d3e7A3BedD70cd4510', name: 'Fav 6' }]}
       />
-    ), { context: { t: str => str + '_t' } })
+    ), { context: { t: (str) => `${str}_t` } })
     instance = wrapper.instance()
   })
 
-  afterEach(() => {
+  afterEach(function () {
     propsMethodSpies.closeToDropdown.resetHistory()
     propsMethodSpies.openToDropdown.resetHistory()
     propsMethodSpies.updateSendTo.resetHistory()
@@ -50,31 +50,31 @@ describe('AddRecipient Component', function () {
     propsMethodSpies.updateGas.resetHistory()
   })
 
-  describe('selectRecipient', () => {
+  describe('selectRecipient', function () {
 
-    it('should call updateSendTo', () => {
+    it('should call updateSendTo', function () {
       assert.equal(propsMethodSpies.updateSendTo.callCount, 0)
       instance.selectRecipient('mockTo2', 'mockNickname')
       assert.equal(propsMethodSpies.updateSendTo.callCount, 1)
       assert.deepEqual(
         propsMethodSpies.updateSendTo.getCall(0).args,
-        ['mockTo2', 'mockNickname']
+        ['mockTo2', 'mockNickname'],
       )
     })
 
-    it('should call updateGas if there is no to error', () => {
+    it('should call updateGas if there is no to error', function () {
       assert.equal(propsMethodSpies.updateGas.callCount, 0)
       instance.selectRecipient(false)
       assert.equal(propsMethodSpies.updateGas.callCount, 1)
     })
   })
 
-  describe('render', () => {
-    it('should render a component', () => {
+  describe('render', function () {
+    it('should render a component', function () {
       assert.equal(wrapper.find('.send__select-recipient-wrapper').length, 1)
     })
 
-    it('should render no content if there are no recents, transfers, and contacts', () => {
+    it('should render no content if there are no recents, transfers, and contacts', function () {
       wrapper.setProps({
         ownedAccounts: [],
         addressBook: [],
@@ -84,7 +84,7 @@ describe('AddRecipient Component', function () {
       assert.equal(wrapper.find('.send__select-recipient-wrapper__group').length, 0)
     })
 
-    it('should render transfer', () => {
+    it('should render transfer', function () {
       wrapper.setProps({
         ownedAccounts: [{ address: '0x123', name: '123' }, { address: '0x124', name: '124' }],
         addressBook: [{ address: '0x456', name: 'test-name' }],
@@ -94,12 +94,11 @@ describe('AddRecipient Component', function () {
       const xferLink = wrapper.find('.send__select-recipient-wrapper__list__link')
       assert.equal(xferLink.length, 1)
 
-
       const groups = wrapper.find('RecipientGroup')
       assert.equal(groups.shallow().find('.send__select-recipient-wrapper__group').length, 1)
     })
 
-    it('should render ContactList', () => {
+    it('should render ContactList', function () {
       wrapper.setProps({
         ownedAccounts: [{ address: '0x123', name: '123' }, { address: '0x124', name: '124' }],
         addressBook: [{ address: '0x125' }],
@@ -110,7 +109,7 @@ describe('AddRecipient Component', function () {
       assert.equal(contactList.length, 1)
     })
 
-    it('should render contacts', () => {
+    it('should render contacts', function () {
       wrapper.setProps({
         addressBook: [
           { address: '0x125', name: 'alice' },
@@ -129,7 +128,7 @@ describe('AddRecipient Component', function () {
       assert.equal(groups.find('.send__select-recipient-wrapper__group-item').length, 0)
     })
 
-    it('should render error when query has no results', () => {
+    it('should render error when query has no results', function () {
       wrapper.setProps({
         addressBook: [],
         toError: 'bad',
@@ -144,7 +143,7 @@ describe('AddRecipient Component', function () {
       assert.equal(dialog.length, 1)
     })
 
-    it('should render error when query has ens does not resolve', () => {
+    it('should render error when query has ens does not resolve', function () {
       wrapper.setProps({
         addressBook: [],
         toError: 'bad',
@@ -160,21 +159,7 @@ describe('AddRecipient Component', function () {
       assert.equal(dialog.length, 1)
     })
 
-    it('should render warning', () => {
-      wrapper.setProps({
-        addressBook: [],
-        query: 'yo',
-        toWarning: 'watchout',
-      })
-
-      const dialog = wrapper.find(Dialog)
-
-      assert.equal(dialog.props().type, 'warning')
-      assert.equal(dialog.props().children, 'watchout_t')
-      assert.equal(dialog.length, 1)
-    })
-
-    it('should not render error when ens resolved', () => {
+    it('should not render error when ens resolved', function () {
       wrapper.setProps({
         addressBook: [],
         toError: 'bad',
@@ -186,7 +171,7 @@ describe('AddRecipient Component', function () {
       assert.equal(dialog.length, 0)
     })
 
-    it('should not render error when query has results', () => {
+    it('should not render error when query has results', function () {
       wrapper.setProps({
         addressBook: [
           { address: '0x125', name: 'alice' },

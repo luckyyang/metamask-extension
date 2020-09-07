@@ -1,11 +1,11 @@
 import React, { PureComponent } from 'react'
 import PropTypes from 'prop-types'
 import classnames from 'classnames'
-import TransactionBreakdownRow from './transaction-breakdown-row'
 import CurrencyDisplay from '../../ui/currency-display'
 import UserPreferencedCurrencyDisplay from '../user-preferenced-currency-display'
 import HexToDecimal from '../../ui/hex-to-decimal'
 import { GWEI, PRIMARY, SECONDARY } from '../../../helpers/constants/common'
+import TransactionBreakdownRow from './transaction-breakdown-row'
 
 export default class TransactionBreakdown extends PureComponent {
   static contextTypes = {
@@ -14,8 +14,9 @@ export default class TransactionBreakdown extends PureComponent {
 
   static propTypes = {
     className: PropTypes.string,
-    nativeCurrency: PropTypes.string.isRequired,
+    nativeCurrency: PropTypes.string,
     showFiat: PropTypes.bool,
+    nonce: PropTypes.string,
     gas: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     gasPrice: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -29,13 +30,23 @@ export default class TransactionBreakdown extends PureComponent {
 
   render () {
     const { t } = this.context
-    const { gas, gasPrice, value, className, nativeCurrency, showFiat, totalInHex, gasUsed } = this.props
-
+    const { gas, gasPrice, value, className, nonce, nativeCurrency, showFiat, totalInHex, gasUsed } = this.props
     return (
       <div className={classnames('transaction-breakdown', className)}>
         <div className="transaction-breakdown__title">
           { t('transaction') }
         </div>
+        <TransactionBreakdownRow title="Nonce">
+          {typeof nonce === 'undefined'
+            ? null
+            : (
+              <HexToDecimal
+                className="transaction-breakdown__value"
+                value={nonce}
+              />
+            )
+          }
+        </TransactionBreakdownRow>
         <TransactionBreakdownRow title={t('amount')}>
           <UserPreferencedCurrencyDisplay
             className="transaction-breakdown__value"
@@ -47,14 +58,14 @@ export default class TransactionBreakdown extends PureComponent {
           title={`${t('gasLimit')} (${t('units')})`}
           className="transaction-breakdown__row-title"
         >
-          {typeof gas !== 'undefined'
-            ? (
+          {typeof gas === 'undefined'
+            ? '?'
+            : (
               <HexToDecimal
                 className="transaction-breakdown__value"
                 value={gas}
               />
             )
-            : '?'
           }
         </TransactionBreakdownRow>
         {
@@ -71,17 +82,18 @@ export default class TransactionBreakdown extends PureComponent {
           )
         }
         <TransactionBreakdownRow title={t('gasPrice')}>
-          {typeof gasPrice !== 'undefined'
-            ? (
+          {typeof gasPrice === 'undefined'
+            ? '?'
+            : (
               <CurrencyDisplay
                 className="transaction-breakdown__value"
+                data-testid="transaction-breakdown__gas-price"
                 currency={nativeCurrency}
                 denomination={GWEI}
                 value={gasPrice}
                 hideLabel
               />
             )
-            : '?'
           }
         </TransactionBreakdownRow>
         <TransactionBreakdownRow title={t('total')}>

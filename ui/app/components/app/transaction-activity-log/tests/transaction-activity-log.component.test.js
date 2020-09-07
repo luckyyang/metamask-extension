@@ -1,10 +1,10 @@
-import React from 'react'
 import assert from 'assert'
+import React from 'react'
 import { shallow } from 'enzyme'
 import TransactionActivityLog from '../transaction-activity-log.component'
 
-describe('TransactionActivityLog Component', () => {
-  it('should render properly', () => {
+describe('TransactionActivityLog Component', function () {
+  it('should render properly', function () {
     const activities = [
       {
         eventKey: 'transactionCreated',
@@ -40,18 +40,18 @@ describe('TransactionActivityLog Component', () => {
         inlineRetryIndex={-1}
         inlineCancelIndex={-1}
         nativeCurrency="ETH"
-        onCancel={() => {}}
-        onRetry={() => {}}
+        onCancel={() => undefined}
+        onRetry={() => undefined}
         primaryTransactionStatus="confirmed"
       />,
-      { context: { t: (str1, str2) => (str2 ? str1 + str2 : str1) } }
+      { context: { t: (str1, str2) => (str2 ? str1 + str2 : str1) } },
     )
 
     assert.ok(wrapper.hasClass('transaction-activity-log'))
     assert.ok(wrapper.hasClass('test-class'))
   })
 
-  it('should render inline retry and cancel buttons for earliest pending transaction', () => {
+  it('should render inline retry and cancel buttons for earliest pending transaction', function () {
     const activities = [
       {
         eventKey: 'transactionCreated',
@@ -87,12 +87,12 @@ describe('TransactionActivityLog Component', () => {
         inlineRetryIndex={2}
         inlineCancelIndex={3}
         nativeCurrency="ETH"
-        onCancel={() => {}}
-        onRetry={() => {}}
+        onCancel={() => undefined}
+        onRetry={() => undefined}
         primaryTransactionStatus="pending"
         isEarliestNonce
       />,
-      { context: { t: (str1, str2) => (str2 ? str1 + str2 : str1) } }
+      { context: { t: (str1, str2) => (str2 ? str1 + str2 : str1) } },
     )
 
     assert.ok(wrapper.hasClass('transaction-activity-log'))
@@ -100,7 +100,7 @@ describe('TransactionActivityLog Component', () => {
     assert.equal(wrapper.find('.transaction-activity-log__action-link').length, 2)
   })
 
-  it('should not render inline retry and cancel buttons for newer pending transactions', () => {
+  it('should not render inline retry and cancel buttons for newer pending transactions', function () {
     const activities = [
       {
         eventKey: 'transactionCreated',
@@ -136,12 +136,12 @@ describe('TransactionActivityLog Component', () => {
         inlineRetryIndex={2}
         inlineCancelIndex={3}
         nativeCurrency="ETH"
-        onCancel={() => {}}
-        onRetry={() => {}}
+        onCancel={() => undefined}
+        onRetry={() => undefined}
         primaryTransactionStatus="pending"
         isEarliestNonce={false}
       />,
-      { context: { t: (str1, str2) => (str2 ? str1 + str2 : str1) } }
+      { context: { t: (str1, str2) => (str2 ? str1 + str2 : str1) } },
     )
 
     assert.ok(wrapper.hasClass('transaction-activity-log'))

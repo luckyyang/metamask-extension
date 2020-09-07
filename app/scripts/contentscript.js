@@ -1,16 +1,16 @@
+import querystring from 'querystring'
+import pump from 'pump'
+import LocalMessageDuplexStream from 'post-message-stream'
+import ObjectMultiplex from 'obj-multiplex'
+import extension from 'extensionizer'
+import PortStream from 'extension-port-stream'
+
+// These require calls need to use require to be statically recognized by browserify
 const fs = require('fs')
 const path = require('path')
-const pump = require('pump')
-const log = require('loglevel')
-const querystring = require('querystring')
-const { Writable } = require('readable-stream')
-const LocalMessageDuplexStream = require('post-message-stream')
-const ObjectMultiplex = require('obj-multiplex')
-const extension = require('extensionizer')
-const PortStream = require('extension-port-stream')
 
-const inpageContent = fs.readFileSync(path.join(__dirname, '..', '..', 'dist', 'chrome', 'inpage.js')).toString()
-const inpageSuffix = '//# sourceURL=' + extension.runtime.getURL('inpage.js') + '\n'
+const inpageContent = fs.readFileSync(path.join(__dirname, '..', '..', 'dist', 'chrome', 'inpage.js'), 'utf8')
+const inpageSuffix = `//# sourceURL=${extension.runtime.getURL('inpage.js')}\n`
 const inpageBundle = inpageContent + inpageSuffix
 
 // Eventually this streaming injection could be replaced with:
@@ -34,7 +34,7 @@ function injectScript (content) {
   try {
     const container = document.head || document.documentElement
     const scriptTag = document.createElement('script')
-    scriptTag.setAttribute('async', false)
+    scriptTag.setAttribute('async', 'false')
     scriptTag.textContent = content
     container.insertBefore(scriptTag, container.children[0])
     container.removeChild(scriptTag)
@@ -77,51 +77,13 @@ async function setupStreams () {
     pageMux,
     pageStream,
     pageMux,
-    (err) => logStreamDisconnectWarning('MetaMask Inpage Multiplex', err)
+    (err) => logStreamDisconnectWarning('MetaMask Inpage Multiplex', err),
   )
   pump(
     extensionMux,
     extensionStream,
     extensionMux,
-    (err) => logStreamDisconnectWarning('MetaMask Background Multiplex', err)
-  )
-
-  const onboardingStream = pageMux.createStream('onboarding')
-  const addCurrentTab = new Writable({
-    objectMode: true,
-    write: (chunk, _, callback) => {
-      if (!chunk) {
-        return callback(new Error('Malformed onboarding message'))
-      }
-
-      const handleSendMessageResponse = (error, success) => {
-        if (!error && !success) {
-          error = extension.runtime.lastError
-        }
-        if (error) {
-          log.error(`Failed to send ${chunk.type} message`, error)
-          return callback(error)
-        }
-        callback(null)
-      }
-
-      try {
-        if (chunk.type === 'registerOnboarding') {
-          extension.runtime.sendMessage({ type: 'metamask:registerOnboarding', location: window.location.href }, handleSendMessageResponse)
-        } else {
-          throw new Error(`Unrecognized onboarding message type: '${chunk.type}'`)
-        }
-      } catch (error) {
-        log.error(error)
-        return callback(error)
-      }
-    },
-  })
-
-  pump(
-    onboardingStream,
-    addCurrentTab,
-    error => console.error('MetaMask onboarding channel traffic failed', error),
+    (err) => logStreamDisconnectWarning('MetaMask Background Multiplex', err),
   )
 
   // forward communication across inpage-background for these channels only
@@ -140,20 +102,20 @@ function forwardTrafficBetweenMuxers (channelName, muxA, muxB) {
     channelA,
     channelB,
     channelA,
-    (err) => logStreamDisconnectWarning(`MetaMask muxed traffic for channel "${channelName}" failed.`, err)
+    (err) => logStreamDisconnectWarning(`MetaMask muxed traffic for channel "${channelName}" failed.`, err),
   )
 }
 
 /**
  * Error handler for page to extension stream disconnections
  *
- * @param {string} remoteLabel Remote stream name
- * @param {Error} err Stream connection error
+ * @param {string} remoteLabel - Remote stream name
+ * @param {Error} err - Stream connection error
  */
 function logStreamDisconnectWarning (remoteLabel, err) {
   let warningMsg = `MetamaskContentscript - lost connection to ${remoteLabel}`
   if (err) {
-    warningMsg += '\n' + err.stack
+    warningMsg += `\n${err.stack}`
   }
   console.warn(warningMsg)
 }
@@ -161,25 +123,24 @@ function logStreamDisconnectWarning (remoteLabel, err) {
 /**
  * Determines if the provider should be injected
  *
- * @returns {boolean} {@code true} if the provider should be injected
+ * @returns {boolean} {@code true} - if the provider should be injected
  */
 function shouldInjectProvider () {
   return doctypeCheck() && suffixCheck() &&
-    documentElementCheck() && !blacklistedDomainCheck()
+    documentElementCheck() && !blockedDomainCheck()
 }
 
 /**
  * Checks the doctype of the current document if it exists
  *
- * @returns {boolean} {@code true} if the doctype is html or if none exists
+ * @returns {boolean} {@code true} - if the doctype is html or if none exists
  */
 function doctypeCheck () {
-  const doctype = window.document.doctype
+  const { doctype } = window.document
   if (doctype) {
     return doctype.name === 'html'
-  } else {
-    return true
   }
+  return true
 }
 
 /**
@@ -189,12 +150,12 @@ function doctypeCheck () {
  * that we should not inject the provider into. This check is indifferent of
  * query parameters in the location.
  *
- * @returns {boolean} whether or not the extension of the current document is prohibited
+ * @returns {boolean} - whether or not the extension of the current document is prohibited
  */
 function suffixCheck () {
   const prohibitedTypes = [
-    /\.xml$/,
-    /\.pdf$/,
+    /\.xml$/u,
+    /\.pdf$/u,
   ]
   const currentUrl = window.location.pathname
   for (let i = 0; i < prohibitedTypes.length; i++) {
@@ -208,7 +169,7 @@ function suffixCheck () {
 /**
  * Checks the documentElement of the current document
  *
- * @returns {boolean} {@code true} if the documentElement is an html node or if none exists
+ * @returns {boolean} {@code true} - if the documentElement is an html node or if none exists
  */
 function documentElementCheck () {
   const documentElement = document.documentElement.nodeName
@@ -219,12 +180,12 @@ function documentElementCheck () {
 }
 
 /**
- * Checks if the current domain is blacklisted
+ * Checks if the current domain is blocked
  *
- * @returns {boolean} {@code true} if the current domain is blacklisted
+ * @returns {boolean} {@code true} - if the current domain is blocked
  */
-function blacklistedDomainCheck () {
-  const blacklistedDomains = [
+function blockedDomainCheck () {
+  const blockedDomains = [
     'uscourts.gov',
     'dropbox.com',
     'webbyawards.com',
@@ -238,9 +199,9 @@ function blacklistedDomainCheck () {
   ]
   const currentUrl = window.location.href
   let currentRegex
-  for (let i = 0; i < blacklistedDomains.length; i++) {
-    const blacklistedDomain = blacklistedDomains[i].replace('.', '\\.')
-    currentRegex = new RegExp(`(?:https?:\\/\\/)(?:(?!${blacklistedDomain}).)*$`)
+  for (let i = 0; i < blockedDomains.length; i++) {
+    const blockedDomain = blockedDomains[i].replace('.', '\\.')
+    currentRegex = new RegExp(`(?:https?:\\/\\/)(?:(?!${blockedDomain}).)*$`, 'u')
     if (!currentRegex.test(currentUrl)) {
       return true
     }
@@ -266,8 +227,8 @@ function redirectToPhishingWarning () {
 async function domIsReady () {
   // already loaded
   if (['interactive', 'complete'].includes(document.readyState)) {
-    return
+    return undefined
   }
   // wait for load
-  return new Promise(resolve => window.addEventListener('DOMContentLoaded', resolve, { once: true }))
+  return new Promise((resolve) => window.addEventListener('DOMContentLoaded', resolve, { once: true }))
 }

@@ -1,6 +1,6 @@
 import { connect } from 'react-redux'
-import { exportAccount, hideWarning, showModal, hideModal } from '../../../../store/actions'
-import { getSelectedIdentity } from '../../../../selectors/selectors'
+import { exportAccount, hideWarning, showModal, hideModal, clearAccountDetails } from '../../../../store/actions'
+import { getSelectedIdentity } from '../../../../selectors'
 import ExportPrivateKeyModal from './export-private-key-modal.component'
 
 function mapStateToPropsFactory () {
@@ -32,6 +32,8 @@ function mapDispatchToProps (dispatch) {
     },
     showAccountDetailModal: () => dispatch(showModal({ name: 'ACCOUNT_DETAILS' })),
     hideModal: () => dispatch(hideModal()),
+    hideWarning: () => dispatch(hideWarning()),
+    clearAccountDetails: () => dispatch(clearAccountDetails()),
   }
 }
 

@@ -1,14 +1,14 @@
 import ethUtil from 'ethereumjs-util'
 import MethodRegistry from 'eth-method-registry'
 import abi from 'human-standard-token-abi'
-import abiDecoder from 'abi-decoder'
+import { ethers } from 'ethers'
+import log from 'loglevel'
 import {
   TRANSACTION_TYPE_CANCEL,
   TRANSACTION_STATUS_CONFIRMED,
 } from '../../../../app/scripts/controllers/transactions/enums'
-import prefixForNetwork from '../../../lib/etherscan-prefix-for-network'
-import fetchWithCache from './fetch-with-cache'
-
+import { MESSAGE_TYPE } from '../../../../app/scripts/lib/enums'
+import { getEtherscanNetworkPrefix } from '../../../lib/etherscan-prefix-for-network'
 import {
   TOKEN_METHOD_TRANSFER,
   TOKEN_METHOD_APPROVE,
@@ -19,18 +19,41 @@ import {
   SEND_TOKEN_ACTION_KEY,
   TRANSFER_FROM_ACTION_KEY,
   SIGNATURE_REQUEST_KEY,
+  DECRYPT_REQUEST_KEY,
+  ENCRYPTION_PUBLIC_KEY_REQUEST_KEY,
   CONTRACT_INTERACTION_KEY,
   CANCEL_ATTEMPT_ACTION_KEY,
   DEPOSIT_TRANSACTION_KEY,
 } from '../constants/transactions'
+import fetchWithCache from './fetch-with-cache'
 
-import log from 'loglevel'
 import { addCurrencies } from './conversion-util'
 
-abiDecoder.addABI(abi)
+const hstInterface = new ethers.utils.Interface(abi)
 
-export function getTokenData (data = '') {
-  return abiDecoder.decodeMethod(data)
+/**
+ * @typedef EthersContractCall
+ * @type object
+ * @property {any[]} args - The args/params to the function call.
+ * An array-like object with numerical and string indices.
+ * @property {string} name - The name of the function.
+ * @property {string} signature - The function signature.
+ * @property {string} sighash - The function signature hash.
+ * @property {EthersBigNumber} value - The ETH value associated with the call.
+ * @property {FunctionFragment} functionFragment - The Ethers function fragment
+ * representation of the function.
+ */
+
+/**
+ * @returns {EthersContractCall | undefined}
+ */
+export function getTokenData (data) {
+  try {
+    return hstInterface.parseTransaction({ data })
+  } catch (error) {
+    log.debug('Failed to parse transaction data.', error, data)
+    return undefined
+  }
 }
 
 async function getMethodFrom4Byte (fourBytePrefix) {
@@ -43,12 +66,10 @@ async function getMethodFrom4Byte (fourBytePrefix) {
 
   if (fourByteResponse.count === 1) {
     return fourByteResponse.results[0].text_signature
-  } else {
-    return null
   }
+  return null
 }
-
-const registry = new MethodRegistry({ provider: global.ethereumProvider })
+let registry
 
 /**
  * Attempts to return the method data from the MethodRegistry library, the message registry library and the token abi, in that order of preference
@@ -61,6 +82,10 @@ export async function getMethodDataAsync (fourBytePrefix) {
       log.error(e)
       return null
     })
+
+    if (!registry) {
+      registry = new MethodRegistry({ provider: global.ethereumProvider })
+    }
 
     let sig = await registry.lookup(fourBytePrefix)
 
@@ -132,6 +157,11 @@ export function getTransactionActionKey (transaction) {
   }
 
   if (msgParams) {
+    if (type === MESSAGE_TYPE.ETH_DECRYPT) {
+      return DECRYPT_REQUEST_KEY
+    } else if (type === MESSAGE_TYPE.ETH_GET_ENCRYPTION_PUBLIC_KEY) {
+      return ENCRYPTION_PUBLIC_KEY_REQUEST_KEY
+    }
     return SIGNATURE_REQUEST_KEY
   }
 
@@ -169,12 +199,12 @@ export function getLatestSubmittedTxWithNonce (transactions = [], nonce = '0x0')
     const { submittedTime, txParams: { nonce: currentNonce } = {} } = current
 
     if (currentNonce === nonce) {
-      return acc.submittedTime
-        ? submittedTime > acc.submittedTime ? current : acc
-        : current
-    } else {
-      return acc
+      if (!acc.submittedTime) {
+        return current
+      }
+      return submittedTime > acc.submittedTime ? current : acc
     }
+    return acc
   }, {})
 }
 
@@ -225,8 +255,8 @@ export function getStatusKey (transaction) {
  */
 export function getBlockExplorerUrlForTx (networkId, hash, rpcPrefs = {}) {
   if (rpcPrefs.blockExplorerUrl) {
-    return `${rpcPrefs.blockExplorerUrl}/tx/${hash}`
+    return `${rpcPrefs.blockExplorerUrl.replace(/\/+$/u, '')}/tx/${hash}`
   }
-  const prefix = prefixForNetwork(networkId)
+  const prefix = getEtherscanNetworkPrefix(networkId)
   return `https://${prefix}etherscan.io/tx/${hash}`
 }

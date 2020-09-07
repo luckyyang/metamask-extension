@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import Identicon from '../../../ui/identicon'
 import classnames from 'classnames'
+import Identicon from '../../../ui/identicon'
 import { ellipsify } from '../../../../pages/send/send.utils'
 
 function addressesEqual (address1, address2) {
@@ -53,7 +53,7 @@ export default function RecipientGroup ({ label, items, onSelect, selectedAddres
 RecipientGroup.propTypes = {
   label: PropTypes.string,
   items: PropTypes.arrayOf(PropTypes.shape({
-    address: PropTypes.string,
+    address: PropTypes.string.isRequired,
     name: PropTypes.string,
   })),
   onSelect: PropTypes.func.isRequired,

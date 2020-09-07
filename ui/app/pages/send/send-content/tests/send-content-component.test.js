@@ -1,7 +1,7 @@
-import React from 'react'
 import assert from 'assert'
+import React from 'react'
 import { shallow } from 'enzyme'
-import SendContent from '../send-content.component.js'
+import SendContent from '../send-content.component'
 
 import PageContainerContent from '../../../../components/ui/page-container/page-container-content.component'
 import SendAmountRow from '../send-amount-row/send-amount-row.container'
@@ -13,27 +13,27 @@ import Dialog from '../../../../components/ui/dialog'
 describe('SendContent Component', function () {
   let wrapper
 
-  beforeEach(() => {
+  beforeEach(function () {
     wrapper = shallow(
       <SendContent
         showHexData
       />,
-      { context: { t: str => str + '_t' } }
+      { context: { t: (str) => `${str}_t` } },
     )
   })
 
-  describe('render', () => {
-    it('should render a PageContainerContent component', () => {
+  describe('render', function () {
+    it('should render a PageContainerContent component', function () {
       assert.equal(wrapper.find(PageContainerContent).length, 1)
     })
 
-    it('should render a div with a .send-v2__form class as a child of PageContainerContent', () => {
+    it('should render a div with a .send-v2__form class as a child of PageContainerContent', function () {
       const PageContainerContentChild = wrapper.find(PageContainerContent).children()
       PageContainerContentChild.is('div')
       PageContainerContentChild.is('.send-v2__form')
     })
 
-    it('should render the correct row components as grandchildren of the PageContainerContent component', () => {
+    it('should render the correct row components as grandchildren of the PageContainerContent component', function () {
       const PageContainerContentChild = wrapper.find(PageContainerContent).children()
       assert(PageContainerContentChild.childAt(0).is(Dialog), 'row[0] should be Dialog')
       assert(PageContainerContentChild.childAt(1).is(SendAssetRow), 'row[1] should be SendAssetRow')
@@ -42,7 +42,7 @@ describe('SendContent Component', function () {
       assert(PageContainerContentChild.childAt(4).is(SendHexDataRow), 'row[4] should be SendHexDataRow')
     })
 
-    it('should not render the SendHexDataRow if props.showHexData is false', () => {
+    it('should not render the SendHexDataRow if props.showHexData is false', function () {
       wrapper.setProps({ showHexData: false })
       const PageContainerContentChild = wrapper.find(PageContainerContent).children()
       assert(PageContainerContentChild.childAt(0).is(Dialog), 'row[0] should be Dialog')
@@ -52,7 +52,7 @@ describe('SendContent Component', function () {
       assert.equal(PageContainerContentChild.childAt(4).exists(), false)
     })
 
-    it('should not render the Dialog if contact has a name', () => {
+    it('should not render the Dialog if contact has a name', function () {
       wrapper.setProps({
         showHexData: false,
         contact: { name: 'testName' },
@@ -64,7 +64,7 @@ describe('SendContent Component', function () {
       assert.equal(PageContainerContentChild.childAt(3).exists(), false)
     })
 
-    it('should not render the Dialog if it is an ownedAccount', () => {
+    it('should not render the Dialog if it is an ownedAccount', function () {
       wrapper.setProps({
         showHexData: false,
         isOwnedAccount: true,
@@ -77,10 +77,22 @@ describe('SendContent Component', function () {
     })
   })
 
-  it('should not render the asset dropdown if token length is 0 ', () => {
+  it('should not render the asset dropdown if token length is 0 ', function () {
     wrapper.setProps({ tokens: [] })
     const PageContainerContentChild = wrapper.find(PageContainerContent).children()
     assert(PageContainerContentChild.childAt(1).is(SendAssetRow))
     assert(PageContainerContentChild.childAt(1).find('send-v2__asset-dropdown__single-asset'), true)
+  })
+
+  it('should render warning', function () {
+    wrapper.setProps({
+      warning: 'watchout',
+    })
+
+    const dialog = wrapper.find(Dialog).at(0)
+
+    assert.equal(dialog.props().type, 'warning')
+    assert.equal(dialog.props().children, 'watchout_t')
+    assert.equal(dialog.length, 1)
   })
 })

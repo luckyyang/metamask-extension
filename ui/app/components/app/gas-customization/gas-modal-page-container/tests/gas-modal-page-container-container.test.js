@@ -35,28 +35,24 @@ proxyquire('../gas-modal-page-container.container.js', {
       return () => ({})
     },
   },
-  '../../../../selectors/custom-gas': {
+  '../../../../selectors': {
     getBasicGasEstimateLoadingStatus: (s) => `mockBasicGasEstimateLoadingStatus:${Object.keys(s).length}`,
     getRenderableBasicEstimateData: (s) => `mockRenderableBasicEstimateData:${Object.keys(s).length}`,
     getDefaultActiveButtonIndex: (a, b) => a + b,
+    getCurrentEthBalance: (state) => state.metamask.balance || '0x0',
+    getSendToken: () => null,
+    getTokenBalance: (state) => state.metamask.send.tokenBalance || '0x0',
   },
   '../../../../store/actions': actionSpies,
   '../../../../ducks/gas/gas.duck': gasActionSpies,
   '../../../../ducks/confirm-transaction/confirm-transaction.duck': confirmTransactionActionSpies,
   '../../../../ducks/send/send.duck': sendActionSpies,
-  '../../../../selectors/selectors.js': {
-    getCurrentEthBalance: (state) => state.metamask.balance || '0x0',
-    getSelectedToken: () => null,
-  },
-  '../../../../pages/send/send.selectors': {
-    getTokenBalance: (state) => state.metamask.send.tokenBalance || '0x0',
-  },
 })
 
-describe('gas-modal-page-container container', () => {
+describe('gas-modal-page-container container', function () {
 
-  describe('mapStateToProps()', () => {
-    it('should map the correct properties to props', () => {
+  describe('mapStateToProps()', function () {
+    it('should map the correct properties to props', function () {
       const baseMockState = {
         appState: {
           modal: {
@@ -85,7 +81,7 @@ describe('gas-modal-page-container container', () => {
           provider: {
             type: 'mainnet',
           },
-          selectedAddressTxList: [{
+          currentNetworkTxList: [{
             id: 34,
             txParams: {
               gas: '0x1600000',
@@ -162,7 +158,7 @@ describe('gas-modal-page-container container', () => {
         isEthereumNetwork: true,
         isMainnet: true,
         maxModeOn: false,
-        selectedToken: null,
+        sendToken: null,
         tokenBalance: '0x0',
         transaction: {
           id: 34,
@@ -172,21 +168,18 @@ describe('gas-modal-page-container container', () => {
       const tests = [
         { mockState: baseMockState, expectedResult: baseExpectedResult, mockOwnProps: baseMockOwnProps },
         {
-          mockState: Object.assign({}, baseMockState, {
-            metamask: { ...baseMockState.metamask, balance: '0xfffffffffffffffffffff' },
-          }),
-          expectedResult: Object.assign({}, baseExpectedResult, { balance: '0xfffffffffffffffffffff', insufficientBalance: false }),
+          mockState: { ...baseMockState, metamask: { ...baseMockState.metamask, balance: '0xfffffffffffffffffffff' } },
+          expectedResult: { ...baseExpectedResult, balance: '0xfffffffffffffffffffff', insufficientBalance: false },
           mockOwnProps: baseMockOwnProps,
         },
         {
           mockState: baseMockState,
-          mockOwnProps: Object.assign({}, baseMockOwnProps, {
-            transaction: { id: 34, status: 'submitted' },
-          }),
-          expectedResult: Object.assign({}, baseExpectedResult, { isSpeedUp: true, transaction: { id: 34 } }),
+          mockOwnProps: { ...baseMockOwnProps, transaction: { id: 34, status: 'submitted' } },
+          expectedResult: { ...baseExpectedResult, isSpeedUp: true, transaction: { id: 34 } },
         },
         {
-          mockState: Object.assign({}, baseMockState, {
+          mockState: {
+            ...baseMockState,
             metamask: {
               ...baseMockState.metamask,
               preferences: {
@@ -198,7 +191,7 @@ describe('gas-modal-page-container container', () => {
                 type: 'rinkeby',
               },
             },
-          }),
+          },
           mockOwnProps: baseMockOwnProps,
           expectedResult: {
             ...baseExpectedResult,
@@ -210,7 +203,8 @@ describe('gas-modal-page-container container', () => {
           },
         },
         {
-          mockState: Object.assign({}, baseMockState, {
+          mockState: {
+            ...baseMockState,
             metamask: {
               ...baseMockState.metamask,
               preferences: {
@@ -222,7 +216,7 @@ describe('gas-modal-page-container container', () => {
                 type: 'rinkeby',
               },
             },
-          }),
+          },
           mockOwnProps: baseMockOwnProps,
           expectedResult: {
             ...baseExpectedResult,
@@ -230,7 +224,8 @@ describe('gas-modal-page-container container', () => {
           },
         },
         {
-          mockState: Object.assign({}, baseMockState, {
+          mockState: {
+            ...baseMockState,
             metamask: {
               ...baseMockState.metamask,
               preferences: {
@@ -242,7 +237,7 @@ describe('gas-modal-page-container container', () => {
                 type: 'mainnet',
               },
             },
-          }),
+          },
           mockOwnProps: baseMockOwnProps,
           expectedResult: baseExpectedResult,
         },
@@ -257,31 +252,31 @@ describe('gas-modal-page-container container', () => {
 
   })
 
-  describe('mapDispatchToProps()', () => {
+  describe('mapDispatchToProps()', function () {
     let dispatchSpy
     let mapDispatchToPropsObject
 
-    beforeEach(() => {
+    beforeEach(function () {
       dispatchSpy = sinon.spy()
       mapDispatchToPropsObject = mapDispatchToProps(dispatchSpy)
     })
 
-    afterEach(() => {
+    afterEach(function () {
       actionSpies.hideModal.resetHistory()
       gasActionSpies.setCustomGasPrice.resetHistory()
       gasActionSpies.setCustomGasLimit.resetHistory()
     })
 
-    describe('hideGasButtonGroup()', () => {
-      it('should dispatch a hideGasButtonGroup action', () => {
+    describe('hideGasButtonGroup()', function () {
+      it('should dispatch a hideGasButtonGroup action', function () {
         mapDispatchToPropsObject.hideGasButtonGroup()
         assert(dispatchSpy.calledOnce)
         assert(sendActionSpies.hideGasButtonGroup.calledOnce)
       })
     })
 
-    describe('cancelAndClose()', () => {
-      it('should dispatch a hideModal action', () => {
+    describe('cancelAndClose()', function () {
+      it('should dispatch a hideModal action', function () {
         mapDispatchToPropsObject.cancelAndClose()
         assert(dispatchSpy.calledTwice)
         assert(actionSpies.hideModal.calledOnce)
@@ -289,17 +284,15 @@ describe('gas-modal-page-container container', () => {
       })
     })
 
-    describe('updateCustomGasPrice()', () => {
-      it('should dispatch a setCustomGasPrice action with the arg passed to updateCustomGasPrice hex prefixed', () => {
+    describe('updateCustomGasPrice()', function () {
+      it('should dispatch a setCustomGasPrice action with the arg passed to updateCustomGasPrice hex prefixed', function () {
         mapDispatchToPropsObject.updateCustomGasPrice('ffff')
         assert(dispatchSpy.calledOnce)
         assert(gasActionSpies.setCustomGasPrice.calledOnce)
         assert.equal(gasActionSpies.setCustomGasPrice.getCall(0).args[0], '0xffff')
       })
-    })
 
-    describe('updateCustomGasPrice()', () => {
-      it('should dispatch a setCustomGasPrice action', () => {
+      it('should dispatch a setCustomGasPrice action', function () {
         mapDispatchToPropsObject.updateCustomGasPrice('0xffff')
         assert(dispatchSpy.calledOnce)
         assert(gasActionSpies.setCustomGasPrice.calledOnce)
@@ -307,9 +300,8 @@ describe('gas-modal-page-container container', () => {
       })
     })
 
-
-    describe('updateCustomGasLimit()', () => {
-      it('should dispatch a setCustomGasLimit action', () => {
+    describe('updateCustomGasLimit()', function () {
+      it('should dispatch a setCustomGasLimit action', function () {
         mapDispatchToPropsObject.updateCustomGasLimit('0x10')
         assert(dispatchSpy.calledOnce)
         assert(gasActionSpies.setCustomGasLimit.calledOnce)
@@ -317,8 +309,8 @@ describe('gas-modal-page-container container', () => {
       })
     })
 
-    describe('setGasData()', () => {
-      it('should dispatch a setGasPrice and setGasLimit action with the correct props', () => {
+    describe('setGasData()', function () {
+      it('should dispatch a setGasPrice and setGasLimit action with the correct props', function () {
         mapDispatchToPropsObject.setGasData('ffff', 'aaaa')
         assert(dispatchSpy.calledTwice)
         assert(actionSpies.setGasPrice.calledOnce)
@@ -328,8 +320,8 @@ describe('gas-modal-page-container container', () => {
       })
     })
 
-    describe('updateConfirmTxGasAndCalculate()', () => {
-      it('should dispatch a updateGasAndCalculate action with the correct props', () => {
+    describe('updateConfirmTxGasAndCalculate()', function () {
+      it('should dispatch a updateGasAndCalculate action with the correct props', function () {
         mapDispatchToPropsObject.updateConfirmTxGasAndCalculate('ffff', 'aaaa')
         assert.equal(dispatchSpy.callCount, 3)
         assert(actionSpies.setGasPrice.calledOnce)
@@ -341,12 +333,12 @@ describe('gas-modal-page-container container', () => {
 
   })
 
-  describe('mergeProps', () => {
+  describe('mergeProps', function () {
     let stateProps
     let dispatchProps
     let ownProps
 
-    beforeEach(() => {
+    beforeEach(function () {
       stateProps = {
         gasPriceButtonGroupProps: {
           someGasPriceButtonGroupProp: 'foo',
@@ -370,7 +362,7 @@ describe('gas-modal-page-container container', () => {
       ownProps = { someOwnProp: 123 }
     })
 
-    afterEach(() => {
+    afterEach(function () {
       dispatchProps.updateCustomGasPrice.resetHistory()
       dispatchProps.hideGasButtonGroup.resetHistory()
       dispatchProps.setGasData.resetHistory()
@@ -380,7 +372,7 @@ describe('gas-modal-page-container container', () => {
       dispatchProps.hideSidebar.resetHistory()
       dispatchProps.hideModal.resetHistory()
     })
-    it('should return the expected props when isConfirm is true', () => {
+    it('should return the expected props when isConfirm is true', function () {
       const result = mergeProps(stateProps, dispatchProps, ownProps)
 
       assert.equal(result.isConfirm, true)
@@ -410,8 +402,8 @@ describe('gas-modal-page-container container', () => {
       assert.equal(dispatchProps.someOtherDispatchProp.callCount, 1)
     })
 
-    it('should return the expected props when isConfirm is false', () => {
-      const result = mergeProps(Object.assign({}, stateProps, { isConfirm: false }), dispatchProps, ownProps)
+    it('should return the expected props when isConfirm is false', function () {
+      const result = mergeProps({ ...stateProps, isConfirm: false }, dispatchProps, ownProps)
 
       assert.equal(result.isConfirm, false)
       assert.equal(result.someOtherStateProp, 'baz')
@@ -441,8 +433,8 @@ describe('gas-modal-page-container container', () => {
       assert.equal(dispatchProps.someOtherDispatchProp.callCount, 1)
     })
 
-    it('should dispatch the expected actions from obSubmit when isConfirm is false and isSpeedUp is true', () => {
-      const result = mergeProps(Object.assign({}, stateProps, { isSpeedUp: true, isConfirm: false }), dispatchProps, ownProps)
+    it('should dispatch the expected actions from obSubmit when isConfirm is false and isSpeedUp is true', function () {
+      const result = mergeProps({ ...stateProps, isSpeedUp: true, isConfirm: false }, dispatchProps, ownProps)
 
       result.onSubmit()
 

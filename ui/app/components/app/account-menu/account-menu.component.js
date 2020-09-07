@@ -1,15 +1,13 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import debounce from 'lodash.debounce'
+import { debounce } from 'lodash'
 import Fuse from 'fuse.js'
 import InputAdornment from '@material-ui/core/InputAdornment'
-
-import { Menu, Item, Divider, CloseArea } from '../dropdowns/components/menu'
+import classnames from 'classnames'
 import { ENVIRONMENT_TYPE_POPUP } from '../../../../../app/scripts/lib/enums'
 import { getEnvironmentType } from '../../../../../app/scripts/lib/util'
-import Tooltip from '../../ui/tooltip'
 import Identicon from '../../ui/identicon'
-import IconWithFallBack from '../../ui/icon-with-fallback'
+import SiteIcon from '../../ui/site-icon'
 import UserPreferencedCurrencyDisplay from '../user-preferenced-currency-display'
 import { PRIMARY } from '../../../helpers/constants/common'
 import {
@@ -22,6 +20,42 @@ import {
 } from '../../../helpers/constants/routes'
 import TextField from '../../ui/text-field'
 import SearchIcon from '../../ui/search-icon'
+
+export function AccountMenuItem (props) {
+  const {
+    icon,
+    children,
+    text,
+    subText,
+    className,
+    onClick,
+  } = props
+
+  const itemClassName = classnames('account-menu__item', className, {
+    'account-menu__item--clickable': Boolean(onClick),
+  })
+  return children
+    ? <div className={itemClassName} onClick={onClick}>{children}</div>
+    : (
+      <div
+        className={itemClassName}
+        onClick={onClick}
+      >
+        {icon ? <div className="account-menu__item__icon">{icon}</div> : null}
+        {text ? <div className="account-menu__item__text">{text}</div> : null}
+        {subText ? <div className="account-menu__item__subtext">{subText}</div> : null}
+      </div>
+    )
+}
+
+AccountMenuItem.propTypes = {
+  icon: PropTypes.node,
+  children: PropTypes.node,
+  text: PropTypes.node,
+  subText: PropTypes.node,
+  onClick: PropTypes.func,
+  className: PropTypes.string,
+}
 
 export default class AccountMenu extends Component {
   static contextTypes = {
@@ -38,13 +72,12 @@ export default class AccountMenu extends Component {
     lockMetamask: PropTypes.func,
     selectedAddress: PropTypes.string,
     showAccountDetail: PropTypes.func,
-    showRemoveAccountConfirmationModal: PropTypes.func,
     toggleAccountMenu: PropTypes.func,
     addressConnectedDomainMap: PropTypes.object,
     originOfCurrentTab: PropTypes.string,
   }
 
-  accountsRef;
+  accountsRef
 
   state = {
     shouldShowScrollButton: false,
@@ -103,12 +136,12 @@ export default class AccountMenu extends Component {
         placeholder={this.context.t('searchAccounts')}
         type="text"
         value={this.state.searchQuery}
-        onChange={e => this.setSearchQuery(e.target.value)}
+        onChange={(e) => this.setSearchQuery(e.target.value)}
         startAdornment={inputAdornment}
         fullWidth
         theme="material-white-padded"
       />,
-      <Divider key="search-divider" />,
+      <div className="account-menu__divider" key="search-divider" />,
     ]
   }
 
@@ -133,12 +166,12 @@ export default class AccountMenu extends Component {
       return <p className="account-menu__no-accounts">{this.context.t('noAccountsFound')}</p>
     }
 
-    return filteredIdentities.map(identity => {
+    return filteredIdentities.map((identity) => {
       const isSelected = identity.address === selectedAddress
 
       const simpleAddress = identity.address.substring(2).toLowerCase()
 
-      const keyring = keyrings.find(kr => {
+      const keyring = keyrings.find((kr) => {
         return kr.accounts.includes(simpleAddress) || kr.accounts.includes(identity.address)
       })
       const addressDomains = addressConnectedDomainMap[identity.address] || {}
@@ -176,45 +209,18 @@ export default class AccountMenu extends Component {
               type={PRIMARY}
             />
           </div>
+          { this.renderKeyringType(keyring) }
           { iconAndNameForOpenDomain
             ? (
               <div className="account-menu__icon-list">
-                <IconWithFallBack icon={iconAndNameForOpenDomain.icon} name={iconAndNameForOpenDomain.name} />
+                <SiteIcon icon={iconAndNameForOpenDomain.icon} name={iconAndNameForOpenDomain.name} size={32} />
               </div>
             )
             : null
           }
-          { this.renderKeyringType(keyring) }
-          { this.renderRemoveAccount(keyring, identity) }
         </div>
       )
     })
-  }
-
-  renderRemoveAccount (keyring, identity) {
-    const { t } = this.context
-    // Any account that's not from the HD wallet Keyring can be removed
-    const { type } = keyring
-    const isRemovable = type !== 'HD Key Tree'
-
-    return isRemovable && (
-      <Tooltip
-        title={t('removeAccount')}
-        position="bottom"
-      >
-        <a
-          className="remove-account-icon"
-          onClick={e => this.removeAccount(e, identity)}
-        />
-      </Tooltip>
-    )
-  }
-
-  removeAccount (e, identity) {
-    e.preventDefault()
-    e.stopPropagation()
-    const { showRemoveAccountConfirmationModal } = this.props
-    showRemoveAccountConfirmationModal(identity)
   }
 
   renderKeyringType (keyring) {
@@ -269,7 +275,7 @@ export default class AccountMenu extends Component {
 
   onScroll = debounce(this.setShouldShowScrollButton, 25)
 
-  handleScrollDown = e => {
+  handleScrollDown = (e) => {
     e.stopPropagation()
 
     const { scrollHeight } = this.accountsRef
@@ -306,31 +312,34 @@ export default class AccountMenu extends Component {
       history,
     } = this.props
 
+    if (!isAccountMenuOpen) {
+      return null
+    }
+
     return (
-      <Menu
+      <div
         className="account-menu"
-        isShowing={isAccountMenuOpen}
       >
-        <CloseArea onClick={toggleAccountMenu} />
-        <Item className="account-menu__header">
+        <div className="account-menu__close-area" onClick={toggleAccountMenu} />
+        <AccountMenuItem className="account-menu__header">
           { t('myAccounts') }
           <button
-            className="account-menu__logout-button"
+            className="account-menu__lock-button"
             onClick={() => {
               lockMetamask()
               history.push(DEFAULT_ROUTE)
             }}
           >
-            { t('logout') }
+            { t('lock') }
           </button>
-        </Item>
-        <Divider />
+        </AccountMenuItem>
+        <div className="account-menu__divider" />
         <div className="account-menu__accounts-container">
           {shouldShowAccountsSearch ? this.renderAccountsSearch() : null}
           <div
             className="account-menu__accounts"
             onScroll={this.onScroll}
-            ref={ref => {
+            ref={(ref) => {
               this.accountsRef = ref
             }}
           >
@@ -338,8 +347,8 @@ export default class AccountMenu extends Component {
           </div>
           { this.renderScrollButton() }
         </div>
-        <Divider />
-        <Item
+        <div className="account-menu__divider" />
+        <AccountMenuItem
           onClick={() => {
             toggleAccountMenu()
             metricsEvent({
@@ -359,7 +368,7 @@ export default class AccountMenu extends Component {
           )}
           text={t('createAccount')}
         />
-        <Item
+        <AccountMenuItem
           onClick={() => {
             toggleAccountMenu()
             metricsEvent({
@@ -379,7 +388,7 @@ export default class AccountMenu extends Component {
           )}
           text={t('importAccount')}
         />
-        <Item
+        <AccountMenuItem
           onClick={() => {
             toggleAccountMenu()
             metricsEvent({
@@ -389,7 +398,7 @@ export default class AccountMenu extends Component {
                 name: 'Clicked Connect Hardware',
               },
             })
-            if (getEnvironmentType(window.location.href) === ENVIRONMENT_TYPE_POPUP) {
+            if (getEnvironmentType() === ENVIRONMENT_TYPE_POPUP) {
               global.platform.openExtensionInBrowser(CONNECT_HARDWARE_ROUTE)
             } else {
               history.push(CONNECT_HARDWARE_ROUTE)
@@ -403,8 +412,8 @@ export default class AccountMenu extends Component {
           )}
           text={t('connectHardwareWallet')}
         />
-        <Divider />
-        <Item
+        <div className="account-menu__divider" />
+        <AccountMenuItem
           onClick={() => {
             toggleAccountMenu()
             history.push(ABOUT_US_ROUTE)
@@ -414,7 +423,7 @@ export default class AccountMenu extends Component {
           }
           text={t('infoHelp')}
         />
-        <Item
+        <AccountMenuItem
           onClick={() => {
             toggleAccountMenu()
             history.push(SETTINGS_ROUTE)
@@ -434,7 +443,7 @@ export default class AccountMenu extends Component {
           )}
           text={t('settings')}
         />
-      </Menu>
+      </div>
     )
   }
 }

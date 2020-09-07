@@ -1,6 +1,5 @@
 import { connect } from 'react-redux'
-import FirstTimeFlow from './first-time-flow.component'
-import { getFirstTimeFlowTypeRoute } from './first-time-flow.selectors'
+import { getFirstTimeFlowTypeRoute } from '../../selectors'
 import {
   createNewVaultAndGetSeedPhrase,
   createNewVaultAndRestore,
@@ -10,6 +9,7 @@ import {
 import {
   INITIALIZE_BACKUP_SEED_PHRASE_ROUTE,
 } from '../../helpers/constants/routes'
+import FirstTimeFlow from './first-time-flow.component'
 
 const mapStateToProps = (state, ownProps) => {
   const { metamask: { completedOnboarding, isInitialized, isUnlocked, seedPhraseBackedUp } } = state
@@ -25,13 +25,13 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
-    createNewAccount: password => dispatch(createNewVaultAndGetSeedPhrase(password)),
+    createNewAccount: (password) => dispatch(createNewVaultAndGetSeedPhrase(password)),
     createNewAccountFromSeed: (password, seedPhrase) => {
       return dispatch(createNewVaultAndRestore(password, seedPhrase))
     },
-    unlockAccount: password => dispatch(unlockAndGetSeedPhrase(password)),
+    unlockAccount: (password) => dispatch(unlockAndGetSeedPhrase(password)),
     verifySeedPhrase: () => verifySeedPhrase(),
   }
 }

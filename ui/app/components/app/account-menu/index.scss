@@ -3,6 +3,11 @@
   z-index: 100;
   top: 58px;
   width: 320px;
+  border-radius: 4px;
+  background: rgba($black, 0.8);
+  box-shadow: rgba($black, 0.15) 0 2px 2px 2px;
+  min-width: 150px;
+  color: $white;
 
   @media screen and (max-width: 575px) {
     right: calc(((100vw - 100%) / 2) + 8px);
@@ -18,6 +23,62 @@
 
   @media screen and (min-width: 1281px) {
     right: calc((100vw - 65vw) / 2);
+  }
+
+  &__item {
+    padding: 18px;
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    position: relative;
+    z-index: 201;
+
+    @media screen and (max-width: 575px) {
+      padding: 14px;
+    }
+
+    &--clickable {
+      cursor: pointer;
+
+      &:hover {
+        background-color: rgba($white, 0.05);
+      }
+
+      &:active {
+        background-color: rgba($white, 0.1);
+      }
+    }
+
+    &__icon {
+      height: 16px;
+      width: 16px;
+      margin-right: 14px;
+    }
+
+    &__text {
+      font-size: 16px;
+      line-height: 21px;
+    }
+
+    &__subtext {
+      font-size: 12px;
+      padding: 5px 0 0 30px;
+    }
+  }
+
+  &__divider {
+    background-color: $scorpion;
+    width: 100%;
+    height: 1px;
+  }
+
+  &__close-area {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 100;
   }
 
   &__icon {
@@ -36,7 +97,7 @@
     align-items: center;
   }
 
-  &__logout-button {
+  &__lock-button {
     border: 1px solid $dusty-gray;
     background-color: transparent;
     color: $white;
@@ -53,31 +114,43 @@
 
   &__accounts-container {
     display: flex;
+    position: relative;
     flex-direction: column;
     z-index: 200;
-    scrollbar-width: none;
 
-    max-height: 256px;
-
-    @media screen and (max-width: 575px) {
-      max-height: 228px;
+    @media (max-height: 600px) {
+      max-height: 236px;
     }
   }
 
   &__accounts {
     overflow-y: auto;
     position: relative;
+    max-height: 256px;
+    scrollbar-width: none;
 
     &::-webkit-scrollbar {
       display: none;
     }
 
+    @media screen and (max-width: 575px) {
+      max-height: 228px;
+    }
+
     .keyring-label {
+      z-index: 1;
+      font-size: 8px;
+      line-height: 8px;
+      border-radius: 10px;
+      padding: 4px;
+      text-align: center;
+      height: 15px;
       margin-top: 5px;
+      margin-right: 10px;
       background-color: $dusty-gray;
       color: $black;
       font-weight: normal;
-      letter-spacing: .5px;
+      letter-spacing: 0.5px;
     }
   }
 
@@ -161,10 +234,6 @@
     cursor: pointer;
   }
 
-  &__accounts-container {
-    position: relative;
-  }
-
   &__scroll-button {
     position: absolute;
     bottom: 12px;
@@ -175,7 +244,7 @@
     background: #3f3f3f;
     z-index: 201;
     cursor: pointer;
-    opacity: .8;
+    opacity: 0.8;
     display: flex;
     justify-content: center;
     align-items: center;

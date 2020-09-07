@@ -1,108 +1,66 @@
 import PropTypes from 'prop-types'
 import React, { PureComponent } from 'react'
-import Identicon from '../../../ui/identicon'
-import IconWithFallBack from '../../../ui/icon-with-fallback'
-import classnames from 'classnames'
+import PermissionsConnectHeader from '../../permissions-connect-header'
+import Tooltip from '../../../ui/tooltip'
+import CheckBox from '../../../ui/check-box'
 
 export default class PermissionPageContainerContent extends PureComponent {
 
   static propTypes = {
-    requestMetadata: PropTypes.object.isRequired,
-    domainMetadata: PropTypes.object.isRequired,
+    domainMetadata: PropTypes.shape({
+      extensionId: PropTypes.string,
+      icon: PropTypes.string,
+      host: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      origin: PropTypes.string.isRequired,
+    }),
     selectedPermissions: PropTypes.object.isRequired,
-    permissionsDescriptions: PropTypes.object.isRequired,
     onPermissionToggle: PropTypes.func.isRequired,
-    selectedAccount: PropTypes.object,
-    redirect: PropTypes.bool,
-    permissionRejected: PropTypes.bool,
+    selectedIdentities: PropTypes.array,
+    allIdentitiesSelected: PropTypes.bool,
   }
 
   static defaultProps = {
-    redirect: null,
-    permissionRejected: null,
-    selectedAccount: {},
+    selectedIdentities: [],
+    allIdentitiesSelected: false,
   }
 
   static contextTypes = {
     t: PropTypes.func,
   }
 
-  renderAccountInfo = (account) => {
-    return (
-      <div className="permission-approval-visual__account-info">
-        <div className="permission-approval-visual__account-info__label">
-          { account.label }
-        </div>
-        <div className="permission-approval-visual__account-info__address">
-          { account.truncatedAddress }
-        </div>
-      </div>
-    )
-  }
-
-  renderPermissionApprovalVisual = () => {
-    const {
-      requestMetadata, domainMetadata, selectedAccount, redirect, permissionRejected,
-    } = this.props
-
-    return (
-      <div className="permission-approval-visual">
-        <section>
-          <IconWithFallBack icon={domainMetadata.icon} name={domainMetadata.name} />
-          { redirect ? null : <h1>{domainMetadata.name}</h1> }
-          { redirect ? null : <h2>{requestMetadata.origin}</h2> }
-        </section>
-        { permissionRejected
-          ? <span className="permission-approval-visual__reject" ><i className="fa fa-times-circle" /></span>
-          : <span className="permission-approval-visual__check" />
-        }
-        <img className="permission-approval-visual__broken-line" src="/images/broken-line.svg" />
-        <section>
-          <div className="permission-approval-visual__identicon-container">
-            <div className="permission-approval-visual__identicon-border" />
-            <Identicon
-              className="permission-approval-visual__identicon"
-              address={selectedAccount.address}
-              diameter={54}
-            />
-          </div>
-          { redirect ? null : this.renderAccountInfo(selectedAccount) }
-        </section>
-      </div>
-    )
-  }
-
   renderRequestedPermissions () {
     const {
-      selectedPermissions, permissionsDescriptions, onPermissionToggle,
+      selectedPermissions, onPermissionToggle,
     } = this.props
     const { t } = this.context
 
-    const items = Object.keys(selectedPermissions).map((methodName) => {
+    const items = Object.keys(selectedPermissions).map((permissionName) => {
 
-      // the request will almost certainly be reject by rpc-cap if this happens
-      if (!permissionsDescriptions[methodName]) {
-        console.warn(`Unknown permission requested: ${methodName}`)
-      }
-      const description = permissionsDescriptions[methodName] || methodName
+      const description = t(permissionName)
       // don't allow deselecting eth_accounts
-      const isDisabled = methodName === 'eth_accounts'
+      const isDisabled = permissionName === 'eth_accounts'
+      const isChecked = Boolean(selectedPermissions[permissionName])
+      const title = isChecked ? t('permissionCheckedIconDescription') : t('permissionUncheckedIconDescription')
 
       return (
         <div
           className="permission-approval-container__content__permission"
-          key={methodName}
+          key={permissionName}
           onClick={() => {
             if (!isDisabled) {
-              onPermissionToggle(methodName)
+              onPermissionToggle(permissionName)
             }
           }}
         >
-          { selectedPermissions[methodName]
-            ? <i className="fa fa-check-circle fa-sm" />
-            : <i className="fa fa-circle fa-sm" />
-          }
-          <label>{description}</label>
+          <CheckBox
+            disabled={isDisabled}
+            id={permissionName}
+            className="permission-approval-container__checkbox"
+            checked={isChecked}
+            title={title}
+          />
+          <label htmlFor={permissionName}>{description}</label>
         </div>
       )
     })
@@ -110,53 +68,91 @@ export default class PermissionPageContainerContent extends PureComponent {
     return (
       <div className="permission-approval-container__content__requested">
         {items}
-        <div className="permission-approval-container__content__revoke-note">{ t('revokeInPermissions') }</div>
       </div>
     )
   }
 
-  render () {
-    const { domainMetadata, redirect, permissionRejected } = this.props
+  getAccountDescriptor (identity) {
+    return `${identity.label} (...${identity.address.slice(identity.address.length - 4)})`
+  }
+
+  renderAccountTooltip (textContent) {
+    const { selectedIdentities } = this.props
     const { t } = this.context
 
-    let titleArgs
-    if (redirect && permissionRejected) {
-      titleArgs = [ 'cancelledConnectionWithMetaMask' ]
-    } else if (redirect) {
-      titleArgs = [ 'connectingWithMetaMask' ]
-    } else if (domainMetadata.extensionId) {
-      titleArgs = [ 'externalExtension', [domainMetadata.extensionId] ]
-    } else {
-      titleArgs = [ 'likeToConnect', [domainMetadata.name] ]
+    return (
+      <Tooltip
+        key="all-account-connect-tooltip"
+        position="bottom"
+        wrapperClassName="permission-approval-container__bold-title-elements"
+        html={(
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            { selectedIdentities.slice(0, 6).map((identity, index) => {
+              return (
+                <div key={ `tooltip-identity-${index}` }>
+                  { this.getAccountDescriptor(identity) }
+                </div>
+              )
+            }) }
+            { selectedIdentities.length > 6
+              ? t('plusXMore', [selectedIdentities.length - 6])
+              : null
+            }
+          </div>
+        )}
+      >
+        { textContent }
+      </Tooltip>
+    )
+  }
+
+  getTitle () {
+    const { domainMetadata, selectedIdentities, allIdentitiesSelected } = this.props
+    const { t } = this.context
+
+    if (domainMetadata.extensionId) {
+      return t('externalExtension', [domainMetadata.extensionId])
+    } else if (allIdentitiesSelected) {
+      return t(
+        'connectToAll',
+        [this.renderAccountTooltip(t('connectToAllAccounts'))],
+      )
+    } else if (selectedIdentities.length > 1) {
+      return t(
+        'connectToMultiple',
+        [
+          this.renderAccountTooltip(t('connectToMultipleNumberOfAccounts', [selectedIdentities.length])),
+        ],
+      )
     }
+    return t('connectTo', [
+      this.getAccountDescriptor(selectedIdentities[0]),
+    ])
+  }
+
+  render () {
+    const { domainMetadata } = this.props
+    const { t } = this.context
+
+    const title = this.getTitle()
 
     return (
-      <div className={classnames('permission-approval-container__content', {
-        'permission-approval-container__content--redirect': redirect,
-      })}
-      >
-        <div className="permission-approval-container__title">
-          { t(...titleArgs) }
+      <div className="permission-approval-container__content">
+        <div className="permission-approval-container__content-container">
+          <PermissionsConnectHeader
+            icon={domainMetadata.icon}
+            iconName={domainMetadata.name}
+            headerTitle={title}
+            headerText={ domainMetadata.extensionId
+              ? t('allowExternalExtensionTo', [domainMetadata.extensionId])
+              : t('allowThisSiteTo')
+            }
+            siteOrigin={domainMetadata.origin}
+          />
+          <section className="permission-approval-container__permissions-container">
+            { this.renderRequestedPermissions() }
+          </section>
         </div>
-        {this.renderPermissionApprovalVisual()}
-        { !redirect
-          ? (
-            <section className="permission-approval-container__permissions-container">
-              <div className="permission-approval-container__permissions-header">
-                { domainMetadata.extensionId
-                  ? t('thisWillAllowExternalExtension', [domainMetadata.extensionId])
-                  : t('thisWillAllow', [domainMetadata.name])
-                }
-              </div>
-              { this.renderRequestedPermissions() }
-            </section>
-          )
-          : (
-            <div className="permission-approval-container__permissions-header-redirect">
-              { t('redirectingBackToDapp') }
-            </div>
-          )
-        }
       </div>
     )
   }

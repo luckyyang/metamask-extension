@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { withStyles } from '@material-ui/core/styles'
-import { default as MaterialTextField } from '@material-ui/core/TextField'
+import MaterialTextField from '@material-ui/core/TextField'
 
 const inputLabelBase = {
   transform: 'none',
@@ -90,7 +90,7 @@ const getMaterialThemeInputProps = ({
   startAdornment,
 }) => ({
   InputLabelProps: {
-    FormLabelClasses: {
+    classes: {
       root: materialLabel,
       focused: materialFocused,
       error: materialError,
@@ -135,7 +135,7 @@ const getBorderedThemeInputProps = ({
   InputLabelProps: {
     shrink: true,
     className: largeLabel ? largeInputLabel : inputLabel,
-    FormLabelClasses: {
+    classes: {
       root: formLabel,
       focused: formLabelFocused,
       error: materialError,
@@ -146,7 +146,7 @@ const getBorderedThemeInputProps = ({
     disableUnderline: true,
     classes: {
       root: inputRoot,
-      input: input,
+      input,
       focused: inputFocused,
     },
     inputProps: {

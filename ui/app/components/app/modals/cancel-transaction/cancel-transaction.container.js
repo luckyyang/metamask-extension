@@ -1,17 +1,17 @@
 import { connect } from 'react-redux'
-import { compose } from 'recompose'
+import { compose } from 'redux'
 import ethUtil from 'ethereumjs-util'
 import { multiplyCurrencies } from '../../../../helpers/utils/conversion-util'
 import withModalProps from '../../../../helpers/higher-order-components/with-modal-props'
-import CancelTransaction from './cancel-transaction.component'
 import { showModal, createCancelTransaction } from '../../../../store/actions'
 import { getHexGasTotal } from '../../../../helpers/utils/confirm-tx.util'
+import CancelTransaction from './cancel-transaction.component'
 
 const mapStateToProps = (state, ownProps) => {
   const { metamask } = state
   const { transactionId, originalGasPrice } = ownProps
-  const { selectedAddressTxList } = metamask
-  const transaction = selectedAddressTxList.find(({ id }) => id === transactionId)
+  const { currentNetworkTxList } = metamask
+  const transaction = currentNetworkTxList.find(({ id }) => id === transactionId)
   const transactionStatus = transaction ? transaction.status : ''
 
   const defaultNewGasPrice = ethUtil.addHexPrefix(
@@ -19,7 +19,7 @@ const mapStateToProps = (state, ownProps) => {
       toNumericBase: 'hex',
       multiplicandBase: 16,
       multiplierBase: 10,
-    })
+    }),
   )
 
   const newGasFee = getHexGasTotal({ gasPrice: defaultNewGasPrice, gasLimit: '0x5208' })
@@ -33,7 +33,7 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     createCancelTransaction: (txId, customGasPrice) => {
       return dispatch(createCancelTransaction(txId, customGasPrice))
@@ -44,6 +44,7 @@ const mapDispatchToProps = dispatch => {
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const { transactionId, defaultNewGasPrice, ...restStateProps } = stateProps
+  // eslint-disable-next-line no-shadow
   const { createCancelTransaction, ...restDispatchProps } = dispatchProps
 
   return {

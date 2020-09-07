@@ -1,13 +1,12 @@
 import { connect } from 'react-redux'
 import {
-  accountsWithSendEtherInfoSelector,
   getSendEnsResolution,
   getSendEnsResolutionError,
-} from '../../send.selectors.js'
-import {
+  accountsWithSendEtherInfoSelector,
   getAddressBook,
   getAddressBookEntry,
-} from '../../../../selectors/selectors'
+} from '../../../../selectors'
+
 import {
   updateSendTo,
 } from '../../../../store/actions'
@@ -32,7 +31,7 @@ function mapStateToProps (state) {
     ensResolution,
     addressBookEntryName,
     ensResolutionError: getSendEnsResolutionError(state),
-    contacts: addressBook.filter(({ name }) => !!name),
+    contacts: addressBook.filter(({ name }) => Boolean(name)),
     nonContacts: addressBook.filter(({ name }) => !name),
   }
 }

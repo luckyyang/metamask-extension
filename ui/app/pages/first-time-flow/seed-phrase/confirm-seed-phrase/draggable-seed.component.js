@@ -58,9 +58,10 @@ class DraggableSeed extends Component {
           'confirm-seed-phrase__seed-word--drop-hover': isOver && canDrop,
         })}
         onClick={onClick}
+        data-testid={`draggable-seed-${selected ? 'selected-' : ''}${word}`}
       >
         { word }
-      </div>
+      </div>,
     ))
   }
 }
@@ -120,5 +121,3 @@ const collectDrop = (connect, monitor) => {
 }
 
 export default DropTarget(SEEDWORD, seedTarget, collectDrop)(DragSource(SEEDWORD, seedSource, collectDrag)(DraggableSeed))
-
-

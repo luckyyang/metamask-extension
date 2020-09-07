@@ -1,12 +1,13 @@
 import React, { PureComponent } from 'react'
 import PropTypes from 'prop-types'
+import classnames from 'classnames'
 import { SETTINGS_ROUTE } from '../../../helpers/constants/routes'
 import { ENVIRONMENT_TYPE_POPUP } from '../../../../../app/scripts/lib/enums'
 import { getEnvironmentType } from '../../../../../app/scripts/lib/util'
-import classnames from 'classnames'
 import Button from '../../../components/ui/button'
-import NetworkForm from './network-form'
+import LockIcon from '../../../components/ui/lock-icon'
 import NetworkDropdownIcon from '../../../components/app/dropdowns/components/network-dropdown-icon'
+import NetworkForm from './network-form'
 
 export default class NetworksTab extends PureComponent {
   static contextTypes = {
@@ -64,7 +65,7 @@ export default class NetworksTab extends PureComponent {
         <div className="networks-tab__add-network-header-button-wrapper">
           <Button
             type="secondary"
-            onClick={event => {
+            onClick={(event) => {
               event.preventDefault()
               setSelectedSettingsRpcUrl(null)
               setNetworksTabAddMode(true)
@@ -103,7 +104,7 @@ export default class NetworksTab extends PureComponent {
 
     return (
       <div
-        key={'settings-network-list-item:' + rpcUrl}
+        key={`settings-network-list-item:${rpcUrl}`}
         className="networks-tab__networks-list-item"
         onClick={ () => {
           setNetworksTabAddMode(false)
@@ -117,9 +118,17 @@ export default class NetworksTab extends PureComponent {
         <div
           className={classnames('networks-tab__networks-list-name', {
             'networks-tab__networks-list-name--selected': displayNetworkListItemAsSelected,
+            'networks-tab__networks-list-name--disabled': currentProviderType !== 'rpc' && !displayNetworkListItemAsSelected,
           })}
         >
           { label || this.context.t(labelKey) }
+          { currentProviderType !== 'rpc' && (
+            <LockIcon
+              width="14px"
+              height="17px"
+              fill="#cdcdcd"
+            />
+          ) }
         </div>
         <div className="networks-tab__networks-list-arrow" />
       </div>
@@ -135,7 +144,7 @@ export default class NetworksTab extends PureComponent {
           'networks-tab__networks-list--selection': (networkIsSelected && !networkDefaultedToProvider) || networksTabIsInAddMode,
         })}
       >
-        { networksToRender.map(network => this.renderNetworkListItem(network, selectedNetwork.rpcUrl)) }
+        { networksToRender.map((network) => this.renderNetworkListItem(network, selectedNetwork.rpcUrl)) }
         {
           networksTabIsInAddMode && (
             <div
@@ -192,10 +201,10 @@ export default class NetworksTab extends PureComponent {
           shouldRenderNetworkForm
             ? (
               <NetworkForm
-                rpcUrls={networksToRender.map(network => network.rpcUrl)}
+                rpcUrls={networksToRender.map((network) => network.rpcUrl)}
                 setRpcTarget={setRpcTarget}
                 editRpc={editRpc}
-                networkName={label || labelKey && t(labelKey) || ''}
+                networkName={label || (labelKey && t(labelKey)) || ''}
                 rpcUrl={rpcUrl}
                 chainId={chainId}
                 ticker={ticker}
@@ -218,7 +227,7 @@ export default class NetworksTab extends PureComponent {
     )
   }
 
-  renderContent () {
+  render () {
     const { setNetworksTabAddMode, setSelectedSettingsRpcUrl, networkIsSelected, networksTabIsInAddMode } = this.props
 
     return (
@@ -230,7 +239,7 @@ export default class NetworksTab extends PureComponent {
             <div className="networks-tab__add-network-button-wrapper">
               <Button
                 type="primary"
-                onClick={event => {
+                onClick={(event) => {
                   event.preventDefault()
                   setSelectedSettingsRpcUrl(null)
                   setNetworksTabAddMode(true)
@@ -244,9 +253,5 @@ export default class NetworksTab extends PureComponent {
         }
       </div>
     )
-  }
-
-  render () {
-    return this.renderContent()
   }
 }

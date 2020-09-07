@@ -7,20 +7,23 @@ import {
   getSendAmount,
   getSendFromBalance,
   getTokenBalance,
-} from '../../send.selectors.js'
-import {
-  getMaxModeOn,
-} from '../send-amount-row/amount-max-button/amount-max-button.selectors'
-import {
-  isBalanceSufficient,
-  calcGasTotal,
-} from '../../send.utils.js'
-import { calcMaxAmount } from '../send-amount-row/amount-max-button/amount-max-button.utils'
-import {
+  getSendMaxModeState,
+  getGasLoadingError,
+  gasFeeIsInError,
+  getGasButtonGroupShown,
+  getAdvancedInlineGasShown,
+  getCurrentEthBalance,
+  getSendToken,
   getBasicGasEstimateLoadingStatus,
   getRenderableEstimateDataForSmallButtonsFromGWEI,
   getDefaultActiveButtonIndex,
-} from '../../../../selectors/custom-gas'
+  getIsMainnet,
+} from '../../../../selectors'
+import {
+  isBalanceSufficient,
+  calcGasTotal,
+} from '../../send.utils'
+import { calcMaxAmount } from '../send-amount-row/amount-max-button/amount-max-button.utils'
 import {
   showGasButtonGroup,
   updateSendErrors,
@@ -30,11 +33,8 @@ import {
   setCustomGasPrice,
   setCustomGasLimit,
 } from '../../../../ducks/gas/gas.duck'
-import { getGasLoadingError, gasFeeIsInError, getGasButtonGroupShown } from './send-gas-row.selectors.js'
 import { showModal, setGasPrice, setGasLimit, setGasTotal, updateSendAmount } from '../../../../store/actions'
-import { getAdvancedInlineGasShown, getCurrentEthBalance, getSelectedToken } from '../../../../selectors/selectors'
 import SendGasRow from './send-gas-row.component'
-
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SendGasRow)
 
@@ -49,7 +49,7 @@ function mapStateToProps (state) {
   const balance = getCurrentEthBalance(state)
 
   const insufficientBalance = !isBalanceSufficient({
-    amount: getSelectedToken(state) ? '0x0' : getSendAmount(state),
+    amount: getSendToken(state) ? '0x0' : getSendAmount(state),
     gasTotal,
     balance,
     conversionRate,
@@ -71,9 +71,10 @@ function mapStateToProps (state) {
     gasPrice,
     gasLimit,
     insufficientBalance,
-    maxModeOn: getMaxModeOn(state),
-    selectedToken: getSelectedToken(state),
+    maxModeOn: getSendMaxModeState(state),
+    sendToken: getSendToken(state),
     tokenBalance: getTokenBalance(state),
+    isMainnet: getIsMainnet(state),
   }
 }
 
@@ -94,7 +95,7 @@ function mapDispatchToProps (dispatch) {
         dispatch(setGasTotal(calcGasTotal(newLimit, gasPrice)))
       }
     },
-    setAmountToMax: maxAmountDataObject => {
+    setAmountToMax: (maxAmountDataObject) => {
       dispatch(updateSendErrors({ amount: null }))
       dispatch(updateSendAmount(calcMaxAmount(maxAmountDataObject)))
     },

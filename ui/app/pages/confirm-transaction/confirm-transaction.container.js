@@ -1,5 +1,5 @@
 import { connect } from 'react-redux'
-import { compose } from 'recompose'
+import { compose } from 'redux'
 import { withRouter } from 'react-router-dom'
 import {
   setTransactionToConfirm,
@@ -16,15 +16,15 @@ import {
   getContractMethodData,
   getTokenParams,
 } from '../../store/actions'
+import { unconfirmedTransactionsListSelector } from '../../selectors'
+import { getMostRecentOverviewPage } from '../../ducks/history/history'
 import ConfirmTransaction from './confirm-transaction.component'
-import { unconfirmedTransactionsListSelector } from '../../selectors/confirm-transaction'
 
 const mapStateToProps = (state, ownProps) => {
   const {
     metamask: {
       send,
       unapprovedTxs,
-      abTests: { fullScreenVsPopup },
     },
   } = state
   const { match: { params = {} } } = ownProps
@@ -33,29 +33,26 @@ const mapStateToProps = (state, ownProps) => {
   const unconfirmedTransactions = unconfirmedTransactionsListSelector(state)
   const totalUnconfirmed = unconfirmedTransactions.length
   const transaction = totalUnconfirmed
-    ? unapprovedTxs[id] || unconfirmedTransactions[totalUnconfirmed - 1]
+    ? unapprovedTxs[id] || unconfirmedTransactions[0]
     : {}
   const { id: transactionId, transactionCategory } = transaction
-
-  const trackABTest = false
 
   return {
     totalUnapprovedCount: totalUnconfirmed,
     send,
     unapprovedTxs,
     id,
+    mostRecentOverviewPage: getMostRecentOverviewPage(state),
     paramsTransactionId: id && String(id),
     transactionId: transactionId && String(transactionId),
     transaction,
     isTokenMethodAction: isTokenMethodAction(transactionCategory),
-    trackABTest,
-    fullScreenVsPopupTestGroup: fullScreenVsPopup,
   }
 }
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
-    setTransactionToConfirm: transactionId => {
+    setTransactionToConfirm: (transactionId) => {
       dispatch(setTransactionToConfirm(transactionId))
     },
     clearConfirmTransaction: () => dispatch(clearConfirmTransaction()),

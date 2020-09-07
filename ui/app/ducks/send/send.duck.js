@@ -1,5 +1,3 @@
-import extend from 'xtend'
-
 // Actions
 const OPEN_TO_DROPDOWN = 'metamask/send/OPEN_TO_DROPDOWN'
 const CLOSE_TO_DROPDOWN = 'metamask/send/CLOSE_TO_DROPDOWN'
@@ -8,7 +6,6 @@ const RESET_SEND_STATE = 'metamask/send/RESET_SEND_STATE'
 const SHOW_GAS_BUTTON_GROUP = 'metamask/send/SHOW_GAS_BUTTON_GROUP'
 const HIDE_GAS_BUTTON_GROUP = 'metamask/send/HIDE_GAS_BUTTON_GROUP'
 
-// TODO: determine if this approach to initState is consistent with conventional ducks pattern
 const initState = {
   toDropdownOpen: false,
   gasButtonGroupShown: true,
@@ -16,37 +13,40 @@ const initState = {
 }
 
 // Reducer
-export default function reducer ({ send: sendState = initState }, action = {}) {
-  const newState = extend({}, sendState)
-
+export default function reducer (state = initState, action) {
   switch (action.type) {
     case OPEN_TO_DROPDOWN:
-      return extend(newState, {
+      return {
+        ...state,
         toDropdownOpen: true,
-      })
+      }
     case CLOSE_TO_DROPDOWN:
-      return extend(newState, {
+      return {
+        ...state,
         toDropdownOpen: false,
-      })
+      }
     case UPDATE_SEND_ERRORS:
-      return extend(newState, {
+      return {
+        ...state,
         errors: {
-          ...newState.errors,
+          ...state.errors,
           ...action.value,
         },
-      })
+      }
     case SHOW_GAS_BUTTON_GROUP:
-      return extend(newState, {
+      return {
+        ...state,
         gasButtonGroupShown: true,
-      })
+      }
     case HIDE_GAS_BUTTON_GROUP:
-      return extend(newState, {
+      return {
+        ...state,
         gasButtonGroupShown: false,
-      })
+      }
     case RESET_SEND_STATE:
-      return extend({}, initState)
+      return { ...initState }
     default:
-      return newState
+      return state
   }
 }
 

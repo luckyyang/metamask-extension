@@ -1,22 +1,22 @@
 import { connect } from 'react-redux'
-import { compose } from 'recompose'
-import ConfirmAddSuggestedToken from './confirm-add-suggested-token.component'
+import { compose } from 'redux'
 import { withRouter } from 'react-router-dom'
+import { addToken, removeSuggestedTokens } from '../../store/actions'
+import { getMostRecentOverviewPage } from '../../ducks/history/history'
+import ConfirmAddSuggestedToken from './confirm-add-suggested-token.component'
 
-const extend = require('xtend')
-
-const { addToken, removeSuggestedTokens } = require('../../store/actions')
-
-const mapStateToProps = ({ metamask }) => {
-  const { pendingTokens, suggestedTokens } = metamask
-  const params = extend(pendingTokens, suggestedTokens)
+const mapStateToProps = (state) => {
+  const { metamask: { pendingTokens, suggestedTokens, tokens } } = state
+  const params = { ...pendingTokens, ...suggestedTokens }
 
   return {
+    mostRecentOverviewPage: getMostRecentOverviewPage(state),
     pendingTokens: params,
+    tokens,
   }
 }
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     addToken: ({ address, symbol, decimals, image }) => dispatch(addToken(address, symbol, Number(decimals), image)),
     removeSuggestedTokens: () => dispatch(removeSuggestedTokens()),
@@ -25,5 +25,5 @@ const mapDispatchToProps = dispatch => {
 
 export default compose(
   withRouter,
-  connect(mapStateToProps, mapDispatchToProps)
+  connect(mapStateToProps, mapDispatchToProps),
 )(ConfirmAddSuggestedToken)

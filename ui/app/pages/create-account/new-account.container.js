@@ -1,8 +1,9 @@
 import { connect } from 'react-redux'
-import actions from '../../store/actions'
+import * as actions from '../../store/actions'
+import { getMostRecentOverviewPage } from '../../ducks/history/history'
 import NewAccountCreateForm from './new-account.component'
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   const { metamask: { network, selectedAddress, identities = {} } } = state
   const numberOfExistingAccounts = Object.keys(identities).length
   const newAccountNumber = numberOfExistingAccounts + 1
@@ -11,15 +12,15 @@ const mapStateToProps = state => {
     network,
     address: selectedAddress,
     newAccountNumber,
+    mostRecentOverviewPage: getMostRecentOverviewPage(state),
   }
 }
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
-    toCoinbase: address => dispatch(actions.buyEth({ network: '1', address, amount: 0 })),
-    createAccount: newAccountName => {
+    createAccount: (newAccountName) => {
       return dispatch(actions.addNewAccount())
-        .then(newAccountAddress => {
+        .then((newAccountAddress) => {
           if (newAccountName) {
             dispatch(actions.setAccountLabel(newAccountAddress, newAccountName))
           }

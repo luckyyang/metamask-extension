@@ -1,55 +1,52 @@
 import React, { Component } from 'react'
-const PropTypes = require('prop-types')
-const connect = require('react-redux').connect
-const actions = require('../../../store/actions')
-const { getMetaMaskAccounts } = require('../../../selectors/selectors')
-const ConnectScreen = require('./connect-screen')
-const AccountList = require('./account-list')
-const { DEFAULT_ROUTE } = require('../../../helpers/constants/routes')
-const { formatBalance } = require('../../../helpers/utils/util')
+import PropTypes from 'prop-types'
+import { connect } from 'react-redux'
+import * as actions from '../../../store/actions'
+import { getMetaMaskAccounts } from '../../../selectors'
+import { formatBalance } from '../../../helpers/utils/util'
+import { getMostRecentOverviewPage } from '../../../ducks/history/history'
+import SelectHardware from './select-hardware'
+import AccountList from './account-list'
 
 class ConnectHardwareForm extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      error: null,
-      selectedAccount: null,
-      accounts: [],
-      browserSupported: true,
-      unlocked: false,
-      device: null,
-    }
+  state = {
+    error: null,
+    selectedAccount: null,
+    accounts: [],
+    browserSupported: true,
+    unlocked: false,
+    device: null,
   }
 
   UNSAFE_componentWillReceiveProps (nextProps) {
     const { accounts } = nextProps
-    const newAccounts = this.state.accounts.map(a => {
+    const newAccounts = this.state.accounts.map((a) => {
       const normalizedAddress = a.address.toLowerCase()
-      const balanceValue = accounts[normalizedAddress] && accounts[normalizedAddress].balance || null
+      const balanceValue = (accounts[normalizedAddress] && accounts[normalizedAddress].balance) || null
       a.balance = balanceValue ? formatBalance(balanceValue, 6) : '...'
       return a
     })
     this.setState({ accounts: newAccounts })
   }
 
-
   componentDidMount () {
     this.checkIfUnlocked()
   }
 
   async checkIfUnlocked () {
-    ['trezor', 'ledger'].forEach(async device => {
+    for (const device of ['trezor', 'ledger']) {
       const unlocked = await this.props.checkHardwareStatus(device, this.props.defaultHdPaths[device])
       if (unlocked) {
         this.setState({ unlocked: true })
         this.getPage(device, 0, this.props.defaultHdPaths[device])
       }
-    })
+    }
   }
 
   connectToHardwareWallet = (device) => {
+    this.setState({ device })
     if (this.state.accounts.length) {
-      return null
+      return
     }
 
     // Default values
@@ -72,7 +69,7 @@ class ConnectHardwareForm extends Component {
   showTemporaryAlert () {
     this.props.showAlert(this.context.t('hardwareWalletConnected'))
     // Autohide the alert after 5 seconds
-    setTimeout(_ => {
+    setTimeout((_) => {
       this.props.hideAlert()
     }, 5000)
   }
@@ -80,7 +77,7 @@ class ConnectHardwareForm extends Component {
   getPage = (device, page, hdPath) => {
     this.props
       .connectHardware(device, page, hdPath)
-      .then(accounts => {
+      .then((accounts) => {
         if (accounts.length) {
 
           // If we just loaded the accounts for the first time
@@ -98,15 +95,14 @@ class ConnectHardwareForm extends Component {
               }
             })
           // If the page doesn't contain the selected account, let's deselect it
-          } else if (!accounts.filter(a => a.index.toString() === this.state.selectedAccount).length) {
+          } else if (!accounts.filter((a) => a.index.toString() === this.state.selectedAccount).length) {
             newState.selectedAccount = null
           }
 
-
           // Map accounts with balances
-          newState.accounts = accounts.map(account => {
+          newState.accounts = accounts.map((account) => {
             const normalizedAddress = account.address.toLowerCase()
-            const balanceValue = this.props.accounts[normalizedAddress] && this.props.accounts[normalizedAddress].balance || null
+            const balanceValue = (this.props.accounts[normalizedAddress] && this.props.accounts[normalizedAddress].balance) || null
             account.balance = balanceValue ? formatBalance(balanceValue, 6) : '...'
             return account
           })
@@ -114,10 +110,12 @@ class ConnectHardwareForm extends Component {
           this.setState(newState)
         }
       })
-      .catch(e => {
+      .catch((e) => {
         const errorMessage = e.message
         if (errorMessage === 'Window blocked') {
           this.setState({ browserSupported: false, error: null })
+        } else if (e.indexOf('U2F') > -1) {
+          this.setState({ error: 'U2F' })
         } else if (errorMessage !== 'Window closed' && errorMessage !== 'Popup closed') {
           this.setState({ error: errorMessage })
         }
@@ -126,35 +124,36 @@ class ConnectHardwareForm extends Component {
 
   onForgetDevice = (device) => {
     this.props.forgetDevice(device)
-      .then(_ => {
+      .then((_) => {
         this.setState({
           error: null,
           selectedAccount: null,
           accounts: [],
           unlocked: false,
         })
-      }).catch(e => {
+      }).catch((e) => {
         this.setState({ error: e.message })
       })
   }
 
   onUnlockAccount = (device) => {
+    const { history, mostRecentOverviewPage, unlockHardwareWalletAccount } = this.props
 
     if (this.state.selectedAccount === null) {
       this.setState({ error: this.context.t('accountSelectionRequired') })
     }
 
-    this.props.unlockHardwareWalletAccount(this.state.selectedAccount, device)
-      .then(_ => {
+    unlockHardwareWalletAccount(this.state.selectedAccount, device)
+      .then((_) => {
         this.context.metricsEvent({
           eventOpts: {
             category: 'Accounts',
             action: 'Connected Hardware Wallet',
-            name: 'Connected Account with: ' + device,
+            name: `Connected Account with: ${device}`,
           },
         })
-        this.props.history.push(DEFAULT_ROUTE)
-      }).catch(e => {
+        history.push(mostRecentOverviewPage)
+      }).catch((e) => {
         this.context.metricsEvent({
           eventOpts: {
             category: 'Accounts',
@@ -170,16 +169,34 @@ class ConnectHardwareForm extends Component {
   }
 
   onCancel = () => {
-    this.props.history.push(DEFAULT_ROUTE)
+    const { history, mostRecentOverviewPage } = this.props
+    history.push(mostRecentOverviewPage)
   }
 
   renderError () {
+    if (this.state.error === 'U2F') {
+      return (
+        <p
+          className="hw-connect__error"
+        >
+          {this.context.t('troubleConnectingToWallet', [this.state.device, (
+            // eslint-disable-next-line react/jsx-key
+            <a
+              href="https://metamask.zendesk.com/hc/en-us/articles/360020394612-How-to-connect-a-Trezor-or-Ledger-Hardware-Wallet"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hw-connect__link"
+              style={{ marginLeft: '5px', marginRight: '5px' }}
+            >
+              {this.context.t('walletConnectionGuide')}
+            </a>
+          )])}
+        </p>
+      )
+    }
     return this.state.error
       ? (
-        <span
-          className="error"
-          style={{ margin: '20px 20px 10px', display: 'block', textAlign: 'center' }}
-        >
+        <span className="hw-connect__error">
           {this.state.error}
         </span>
       )
@@ -189,7 +206,7 @@ class ConnectHardwareForm extends Component {
   renderContent () {
     if (!this.state.accounts.length) {
       return (
-        <ConnectScreen
+        <SelectHardware
           connectToHardwareWallet={this.connectToHardwareWallet}
           browserSupported={this.state.browserSupported}
         />
@@ -216,10 +233,10 @@ class ConnectHardwareForm extends Component {
 
   render () {
     return (
-      <div>
+      <>
         {this.renderError()}
         {this.renderContent()}
-      </div>
+      </>
     )
   }
 }
@@ -237,9 +254,10 @@ ConnectHardwareForm.propTypes = {
   accounts: PropTypes.object,
   address: PropTypes.string,
   defaultHdPaths: PropTypes.object,
+  mostRecentOverviewPage: PropTypes.string.isRequired,
 }
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   const {
     metamask: { network, selectedAddress },
   } = state
@@ -253,10 +271,11 @@ const mapStateToProps = state => {
     accounts,
     address: selectedAddress,
     defaultHdPaths,
+    mostRecentOverviewPage: getMostRecentOverviewPage(state),
   }
 }
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     setHardwareWalletDefaultHdPath: ({ device, path }) => {
       return dispatch(actions.setHardwareWalletDefaultHdPath({ device, path }))
@@ -283,6 +302,6 @@ ConnectHardwareForm.contextTypes = {
   metricsEvent: PropTypes.func,
 }
 
-module.exports = connect(mapStateToProps, mapDispatchToProps)(
-  ConnectHardwareForm
+export default connect(mapStateToProps, mapDispatchToProps)(
+  ConnectHardwareForm,
 )

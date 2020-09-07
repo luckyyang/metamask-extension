@@ -3,14 +3,13 @@ import currencies from 'currency-formatter/currencies'
 import ethUtil from 'ethereumjs-util'
 import BigNumber from 'bignumber.js'
 
+import { unconfirmedTransactionsCountSelector } from '../../selectors'
 import {
   conversionUtil,
   addCurrencies,
   multiplyCurrencies,
   conversionGreaterThan,
 } from './conversion-util'
-
-import { unconfirmedTransactionsCountSelector } from '../../selectors/confirm-transaction'
 
 export function increaseLastGasPrice (lastGasPrice) {
   return ethUtil.addHexPrefix(multiplyCurrencies(lastGasPrice || '0x0', 1.1, {
@@ -94,7 +93,7 @@ export function getTransactionFee ({
 export function formatCurrency (value, currencyCode) {
   const upperCaseCurrencyCode = currencyCode.toUpperCase()
 
-  return currencies.find(currency => currency.code === upperCaseCurrencyCode)
+  return currencies.find((currency) => currency.code === upperCaseCurrencyCode)
     ? currencyFormatter.format(Number(value), { code: upperCaseCurrencyCode, style: 'currency' })
     : value
 }

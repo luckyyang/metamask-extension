@@ -14,10 +14,11 @@ export default class MetaMetricsOptIn extends Component {
 
   static contextTypes = {
     metricsEvent: PropTypes.func,
+    t: PropTypes.func,
   }
 
   render () {
-    const { metricsEvent } = this.context
+    const { metricsEvent, t } = this.context
     const {
       nextRoute,
       history,
@@ -87,7 +88,7 @@ export default class MetaMetricsOptIn extends Component {
               onCancel={() => {
                 setParticipateInMetaMetrics(false)
                   .then(() => {
-                    const promise = participateInMetaMetrics !== false
+                    const promise = participateInMetaMetrics === true
                       ? metricsEvent({
                         eventOpts: {
                           category: 'Onboarding',
@@ -104,12 +105,12 @@ export default class MetaMetricsOptIn extends Component {
                       })
                   })
               }}
-              cancelText="No Thanks"
+              cancelText={t('noThanks')}
               hideCancel={false}
               onSubmit={() => {
                 setParticipateInMetaMetrics(true)
                   .then(([_, metaMetricsId]) => {
-                    const promise = participateInMetaMetrics !== true
+                    const promise = participateInMetaMetrics === false
                       ? metricsEvent({
                         eventOpts: {
                           category: 'Onboarding',
@@ -137,19 +138,20 @@ export default class MetaMetricsOptIn extends Component {
                       })
                   })
               }}
-              submitText="I agree"
+              submitText={t('affirmAgree')}
               submitButtonType="primary"
               disabled={false}
             />
             <div className="metametrics-opt-in__bottom-text">
-              This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679. For more information in relation to our privacy practices, please see our&nbsp;
-              <a
-                href="https://metamask.io/privacy.html"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Privacy Policy here
-              </a>.
+              { t('gdprMessage', [
+                <a
+                  key="metametrics-bottom-text-wrapper"
+                  href="https://metamask.io/privacy.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >{ t('gdprMessagePrivacyPolicy') }
+                </a>])
+              }
             </div>
           </div>
         </div>

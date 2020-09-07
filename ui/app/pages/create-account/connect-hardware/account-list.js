@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import Select from 'react-select'
-const genAccountLink = require('../../../../lib/account-link.js')
+import getAccountLink from '../../../../lib/account-link'
 import Button from '../../../components/ui/button'
 
 class AccountList extends Component {
@@ -101,8 +101,9 @@ class AccountList extends Component {
               </div>
               <a
                 className="hw-account-list__item__link"
-                href={genAccountLink(account.address, this.props.network)}
+                href={getAccountLink(account.address, this.props.network)}
                 target="_blank"
+                rel="noopener noreferrer"
                 title={this.context.t('etherscanView')}
               >
                 <img src="images/popout.svg" alt="" />
@@ -134,11 +135,11 @@ class AccountList extends Component {
       }
 
       return (
-        <div className="new-account-connect-form__buttons">
+        <div className="new-external-account-form__buttons">
           <Button
             type="default"
             large
-            className="new-account-connect-form__button"
+            className="new-external-account-form__button"
             onClick={this.props.onCancel.bind(this)}
           >
             {this.context.t('cancel')}
@@ -146,7 +147,7 @@ class AccountList extends Component {
           <Button
             type="primary"
             large
-            className="new-account-connect-form__button unlock"
+            className="new-external-account-form__button unlock"
             disabled={disabled}
             onClick={this.props.onUnlockAccount.bind(this, this.props.device)}
           >
@@ -168,7 +169,7 @@ class AccountList extends Component {
 
     render () {
       return (
-        <div className="new-account-connect-form account-list">
+        <div className="new-external-account-form account-list">
           {this.renderHeader()}
           {this.renderAccounts()}
           {this.renderPagination()}
@@ -179,7 +180,6 @@ class AccountList extends Component {
     }
 
 }
-
 
 AccountList.propTypes = {
   onPathChange: PropTypes.func.isRequired,
@@ -200,4 +200,4 @@ AccountList.contextTypes = {
   t: PropTypes.func,
 }
 
-module.exports = AccountList
+export default AccountList

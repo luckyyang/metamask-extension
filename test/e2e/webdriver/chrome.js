@@ -5,7 +5,7 @@ const chrome = require('selenium-webdriver/chrome')
  * A wrapper around a {@code WebDriver} instance exposing Chrome-specific functionality
  */
 class ChromeDriver {
-  static async build ({ extensionPath, responsive }) {
+  static async build ({ extensionPath, responsive, port }) {
     const args = [
       `load-extension=${extensionPath}`,
     ]
@@ -14,22 +14,27 @@ class ChromeDriver {
     }
     const options = new chrome.Options()
       .addArguments(args)
-    const driver = new Builder()
+    const builder = new Builder()
       .forBrowser('chrome')
       .setChromeOptions(options)
-      .build()
+    if (port) {
+      const service = new chrome.ServiceBuilder()
+        .setPort(port)
+      builder.setChromeService(service)
+    }
+    const driver = builder.build()
     const chromeDriver = new ChromeDriver(driver)
     const extensionId = await chromeDriver.getExtensionIdByName('MetaMask')
 
     return {
       driver,
-      extensionUrl: `chrome-extension://${extensionId}/home.html`,
+      extensionUrl: `chrome-extension://${extensionId}`,
     }
   }
 
   /**
    * @constructor
-   * @param {!ThenableWebDriver} driver a {@code WebDriver} instance
+   * @param {!ThenableWebDriver} driver - a {@code WebDriver} instance
    */
   constructor (driver) {
     this._driver = driver
@@ -37,8 +42,8 @@ class ChromeDriver {
 
   /**
    * Returns the extension ID for the given extension name
-   * @param {string} extensionName the extension name
-   * @return {Promise<string|undefined>} the extension ID
+   * @param {string} extensionName - the extension name
+   * @returns {Promise<string|undefined>} - the extension ID
    */
   async getExtensionIdByName (extensionName) {
     await this._driver.get('chrome://extensions')

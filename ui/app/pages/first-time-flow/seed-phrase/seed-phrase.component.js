@@ -1,17 +1,17 @@
 import React, { PureComponent } from 'react'
 import PropTypes from 'prop-types'
 import { Switch, Route } from 'react-router-dom'
-import RevealSeedPhrase from './reveal-seed-phrase'
-import ConfirmSeedPhrase from './confirm-seed-phrase'
+import HTML5Backend from 'react-dnd-html5-backend'
+import { DragDropContextProvider } from 'react-dnd'
 import {
   INITIALIZE_SEED_PHRASE_ROUTE,
   INITIALIZE_CONFIRM_SEED_PHRASE_ROUTE,
   INITIALIZE_BACKUP_SEED_PHRASE_ROUTE,
   DEFAULT_ROUTE,
 } from '../../../helpers/constants/routes'
-import HTML5Backend from 'react-dnd-html5-backend'
-import { DragDropContextProvider } from 'react-dnd'
 import MetaFoxLogo from '../../../components/ui/metafox-logo'
+import ConfirmSeedPhrase from './confirm-seed-phrase'
+import RevealSeedPhrase from './reveal-seed-phrase'
 
 export default class SeedPhrase extends PureComponent {
   static propTypes = {
@@ -29,11 +29,11 @@ export default class SeedPhrase extends PureComponent {
 
     if (!seedPhrase) {
       verifySeedPhrase()
-        .then(verifiedSeedPhrase => {
-          if (!verifiedSeedPhrase) {
-            history.push(DEFAULT_ROUTE)
-          } else {
+        .then((verifiedSeedPhrase) => {
+          if (verifiedSeedPhrase) {
             this.setState({ verifiedSeedPhrase })
+          } else {
+            history.push(DEFAULT_ROUTE)
           }
         })
     }
@@ -51,7 +51,7 @@ export default class SeedPhrase extends PureComponent {
             <Route
               exact
               path={INITIALIZE_CONFIRM_SEED_PHRASE_ROUTE}
-              render={routeProps => (
+              render={(routeProps) => (
                 <ConfirmSeedPhrase
                   { ...routeProps }
                   seedPhrase={seedPhrase || verifiedSeedPhrase}
@@ -61,7 +61,7 @@ export default class SeedPhrase extends PureComponent {
             <Route
               exact
               path={INITIALIZE_SEED_PHRASE_ROUTE}
-              render={routeProps => (
+              render={(routeProps) => (
                 <RevealSeedPhrase
                   { ...routeProps }
                   seedPhrase={seedPhrase || verifiedSeedPhrase}
@@ -71,7 +71,7 @@ export default class SeedPhrase extends PureComponent {
             <Route
               exact
               path={INITIALIZE_BACKUP_SEED_PHRASE_ROUTE}
-              render={routeProps => (
+              render={(routeProps) => (
                 <RevealSeedPhrase
                   { ...routeProps }
                   seedPhrase={seedPhrase || verifiedSeedPhrase}

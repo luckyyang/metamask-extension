@@ -14,7 +14,6 @@ export default class UnitInput extends PureComponent {
     actionComponent: PropTypes.node,
     error: PropTypes.bool,
     maxModeOn: PropTypes.bool,
-    onBlur: PropTypes.func,
     onChange: PropTypes.func,
     placeholder: PropTypes.string,
     suffix: PropTypes.string,
@@ -22,15 +21,12 @@ export default class UnitInput extends PureComponent {
   }
 
   static defaultProps = {
+    value: '',
     placeholder: '0',
   }
 
-  constructor (props) {
-    super(props)
-
-    this.state = {
-      value: props.value || '',
-    }
+  state = {
+    value: this.props.value,
   }
 
   componentDidUpdate (prevProps) {
@@ -47,7 +43,7 @@ export default class UnitInput extends PureComponent {
     this.unitInput.focus()
   }
 
-  handleChange = event => {
+  handleChange = (event) => {
     const { value: userInput } = event.target
     let value = userInput
 
@@ -59,16 +55,11 @@ export default class UnitInput extends PureComponent {
     this.props.onChange(value)
   }
 
-  handleBlur = () => {
-    const { onBlur } = this.props
-    typeof onBlur === 'function' && onBlur(this.state.value)
-  }
-
   getInputWidth (value) {
     const valueString = String(value)
     const valueLength = valueString.length || 1
-    const decimalPointDeficit = valueString.match(/\./) ? -0.5 : 0
-    return (valueLength + decimalPointDeficit + 0.5) + 'ch'
+    const decimalPointDeficit = valueString.match(/\./u) ? -0.5 : 0
+    return `${valueLength + decimalPointDeficit + 0.5}ch`
   }
 
   render () {
@@ -89,9 +80,8 @@ export default class UnitInput extends PureComponent {
               value={value}
               placeholder={placeholder}
               onChange={this.handleChange}
-              onBlur={this.handleBlur}
               style={{ width: this.getInputWidth(value) }}
-              ref={ref => {
+              ref={(ref) => {
                 this.unitInput = ref
               }}
               disabled={maxModeOn}

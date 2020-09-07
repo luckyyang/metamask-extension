@@ -1,4 +1,4 @@
-const log = require('loglevel')
+import log from 'loglevel'
 
 const FIXTURE_SERVER_HOST = 'localhost'
 const FIXTURE_SERVER_PORT = 12345
@@ -7,7 +7,7 @@ const FIXTURE_SERVER_URL = `http://${FIXTURE_SERVER_HOST}:${FIXTURE_SERVER_PORT}
 /**
  * A read-only network-based storage wrapper
  */
-class ReadOnlyNetworkStore {
+export default class ReadOnlyNetworkStore {
   constructor () {
     this._initialized = false
     this._initializing = this._init()
@@ -24,7 +24,7 @@ class ReadOnlyNetworkStore {
    */
   async _init () {
     try {
-      const response = await fetch(FIXTURE_SERVER_URL)
+      const response = await window.fetch(FIXTURE_SERVER_URL)
       if (response.ok) {
         this._state = await response.json()
       }
@@ -37,7 +37,7 @@ class ReadOnlyNetworkStore {
 
   /**
    * Returns state
-   * @return {Promise<object>}
+   * @returns {Promise<object>}
    */
   async get () {
     if (!this._initialized) {
@@ -48,8 +48,8 @@ class ReadOnlyNetworkStore {
 
   /**
    * Set state
-   * @param {object} state - The state to set
-   * @return {Promise<void>}
+   * @param {Object} state - The state to set
+   * @returns {Promise<void>}
    */
   async set (state) {
     if (!this._initialized) {
@@ -58,5 +58,3 @@ class ReadOnlyNetworkStore {
     this._state = state
   }
 }
-
-module.exports = ReadOnlyNetworkStore

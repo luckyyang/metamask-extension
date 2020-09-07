@@ -1,13 +1,9 @@
 import { getHexGasTotal } from '../../../helpers/utils/confirm-tx.util'
 
-// path constants
-const STATUS_PATH = '/status'
-const GAS_PRICE_PATH = '/txParams/gasPrice'
-const GAS_LIMIT_PATH = '/txParams/gas'
-
-// op constants
-const REPLACE_OP = 'replace'
-
+import {
+  TRANSACTION_TYPE_CANCEL,
+  TRANSACTION_TYPE_RETRY,
+} from '../../../../../app/scripts/controllers/transactions/enums'
 import {
   // event constants
   TRANSACTION_CREATED_EVENT,
@@ -25,10 +21,13 @@ import {
   DROPPED_STATUS,
 } from './transaction-activity-log.constants'
 
-import {
-  TRANSACTION_TYPE_CANCEL,
-  TRANSACTION_TYPE_RETRY,
-} from '../../../../../app/scripts/controllers/transactions/enums'
+// path constants
+const STATUS_PATH = '/status'
+const GAS_PRICE_PATH = '/txParams/gasPrice'
+const GAS_LIMIT_PATH = '/txParams/gas'
+
+// op constants
+const REPLACE_OP = 'replace'
 
 const eventPathsHash = {
   [STATUS_PATH]: true,
@@ -86,11 +85,11 @@ export function getActivities (transaction, isFirstTransaction = false) {
     } else if (Array.isArray(base)) {
       const events = []
 
-      base.forEach(entry => {
+      base.forEach((entry) => {
         const { op, path, value, timestamp: entryTimestamp } = entry
         // Not all sub-entries in a history entry have a timestamp. If the sub-entry does not have a
         // timestamp, the first sub-entry in a history entry should.
-        const timestamp = entryTimestamp || base[0] && base[0].timestamp
+        const timestamp = entryTimestamp || (base[0] && base[0].timestamp)
 
         if (path in eventPathsHash && op === REPLACE_OP) {
           switch (path) {
@@ -171,7 +170,7 @@ export function getActivities (transaction, isFirstTransaction = false) {
     return acc
   }, [])
 
-  // If txReceipt.status is '0x0', that means that an on-chain error occured for the transaction,
+  // If txReceipt.status is '0x0', that means that an on-chain error occurred for the transaction,
   // so we add an error entry to the Activity Log.
   return status === '0x0'
     ? historyActivities.concat({ id, hash, eventKey: TRANSACTION_ERRORED_EVENT })
@@ -194,7 +193,7 @@ function filterSortedActivities (activities) {
   )))
   let addedDroppedActivity = false
 
-  activities.forEach(activity => {
+  activities.forEach((activity) => {
     if (activity.eventKey === TRANSACTION_DROPPED_EVENT) {
       if (!hasConfirmedActivity && !addedDroppedActivity) {
         filteredActivities.push(activity)

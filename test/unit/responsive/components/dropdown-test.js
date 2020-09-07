@@ -1,27 +1,21 @@
-const React = require('react')
-const assert = require('assert')
-
-const sinon = require('sinon')
-const path = require('path')
-const Dropdown = require(path.join(__dirname, '..', '..', '..', '..', 'ui', 'app', 'components', 'app', 'dropdowns', 'index.js')).Dropdown
-
-const { createMockStore } = require('redux-test-utils')
-const { mountWithStore } = require('../../../lib/render-helpers')
-
-const mockState = {
-  metamask: {
-  },
-}
+import assert from 'assert'
+import React from 'react'
+import configureMockStore from 'redux-mock-store'
+import { fireEvent } from '@testing-library/react'
+import sinon from 'sinon'
+import { renderWithProvider } from '../../../lib/render-helpers'
+import { Dropdown } from '../../../../ui/app/components/app/dropdowns/components/dropdown'
 
 describe('Dropdown components', function () {
-  let onClickOutside
-  let closeMenu
-  let onClick
 
-  const dropdownComponentProps = {
+  const mockState = {
+    metamask: {},
+  }
+
+  const props = {
     isOpen: true,
     zIndex: 11,
-    onClickOutside,
+    onClickOutside: sinon.spy(),
     style: {
       position: 'absolute',
       right: 0,
@@ -30,48 +24,22 @@ describe('Dropdown components', function () {
     innerStyle: {},
   }
 
-  let dropdownComponent
-  let store
-  let component
-  beforeEach(function () {
-    onClickOutside = sinon.spy()
-    closeMenu = sinon.spy()
-    onClick = sinon.spy()
-
-    store = createMockStore(mockState)
-    component = mountWithStore((
-      <Dropdown {...dropdownComponentProps}>
-        <style>
-          {
-            `
-              .drop-menu-item:hover { background:rgb(235, 235, 235); }
-              .drop-menu-item i { margin: 11px; }
-            `
-          }
-        </style>
-        <li closeMenu={closeMenu} onClick={onClick}>Item 1</li>
-        <li closeMenu={closeMenu} onClick={onClick}>Item 2</li>
-      </Dropdown>
-    ), store)
-    dropdownComponent = component
-  })
-
-  it('can render two items', function () {
-    const items = dropdownComponent.find('li')
-    assert.equal(items.length, 2)
-  })
-
-  it('closes when item clicked', function () {
-    const items = dropdownComponent.find('li')
-    const node = items.at(0)
-    node.simulate('click')
-    assert.equal(node.props().closeMenu, closeMenu)
-  })
-
   it('invokes click handler when item clicked', function () {
-    const items = dropdownComponent.find('li')
-    const node = items.at(0)
-    node.simulate('click')
-    assert.equal(onClick.calledOnce, true)
+    const store = configureMockStore()(mockState)
+
+    const onClickSpy = sinon.spy()
+
+    const { getByText } = renderWithProvider(
+      <Dropdown {...props}>
+        <li onClick={onClickSpy}>Item 1</li>
+        <li onClick={onClickSpy}>Item 2</li>
+      </Dropdown>, store,
+    )
+
+    const item1 = getByText(/Item 1/u)
+    fireEvent.click(item1)
+
+    assert.ok(onClickSpy.calledOnce)
   })
+
 })

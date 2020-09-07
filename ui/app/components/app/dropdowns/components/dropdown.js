@@ -1,9 +1,8 @@
 import React, { Component } from 'react'
-const PropTypes = require('prop-types')
-const MenuDroppo = require('../../menu-droppo')
-const extend = require('xtend')
+import PropTypes from 'prop-types'
+import MenuDroppo from '../../menu-droppo'
 
-class Dropdown extends Component {
+export class Dropdown extends Component {
   render () {
     const {
       containerClassName,
@@ -15,12 +14,12 @@ class Dropdown extends Component {
       useCssTransition,
     } = this.props
 
-    const innerStyleDefaults = extend({
+    const innerStyleDefaults = {
       borderRadius: '4px',
       padding: '8px 16px',
       background: 'rgba(0, 0, 0, 0.8)',
-      boxShadow: 'rgba(0, 0, 0, 0.15) 0px 2px 2px 2px',
-    }, innerStyle)
+      boxShadow: 'rgba(0, 0, 0, 0.15) 0px 2px 2px 2px', ...innerStyle,
+    }
 
     return (
       <MenuDroppo
@@ -62,7 +61,7 @@ Dropdown.propTypes = {
   containerClassName: PropTypes.string,
 }
 
-class DropdownMenuItem extends Component {
+export class DropdownMenuItem extends Component {
   render () {
     const { onClick, closeMenu, children, style } = this.props
 
@@ -73,7 +72,7 @@ class DropdownMenuItem extends Component {
           onClick()
           closeMenu()
         }}
-        style={Object.assign({
+        style={({
           listStyle: 'none',
           padding: '8px 0px',
           fontSize: '18px',
@@ -82,8 +81,8 @@ class DropdownMenuItem extends Component {
           display: 'flex',
           justifyContent: 'flex-start',
           alignItems: 'center',
-          color: 'white',
-        }, style)}
+          color: 'white', ...style,
+        })}
       >
         {children}
       </li>
@@ -96,9 +95,4 @@ DropdownMenuItem.propTypes = {
   onClick: PropTypes.func.isRequired,
   children: PropTypes.node,
   style: PropTypes.object,
-}
-
-module.exports = {
-  Dropdown,
-  DropdownMenuItem,
 }

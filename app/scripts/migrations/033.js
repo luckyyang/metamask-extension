@@ -1,19 +1,19 @@
 // next version number
-const version = 33
-
 /*
 
 Cleans up notices and assocated notice controller code
 
 */
 
-const clone = require('clone')
+import { cloneDeep } from 'lodash'
 
-module.exports = {
+const version = 33
+
+export default {
   version,
 
-  migrate: async function (originalVersionedData) {
-    const versionedData = clone(originalVersionedData)
+  async migrate (originalVersionedData) {
+    const versionedData = cloneDeep(originalVersionedData)
     versionedData.meta.version = version
     const state = versionedData.data
     const newState = transformState(state)

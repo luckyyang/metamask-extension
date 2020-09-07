@@ -1,5 +1,5 @@
-const assert = require('assert')
-const MessageManager = require('../../../app/scripts/lib/message-manager')
+import assert from 'assert'
+import MessageManager from '../../../app/scripts/lib/message-manager'
 
 describe('Message Manager', function () {
   let messageManager
@@ -13,9 +13,6 @@ describe('Message Manager', function () {
       const result = messageManager.messages
       assert.ok(Array.isArray(result))
       assert.equal(result.length, 0)
-    })
-    it('should also return transactions from local storage if any', function () {
-
     })
   })
 

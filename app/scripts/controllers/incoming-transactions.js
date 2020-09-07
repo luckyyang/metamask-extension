@@ -1,33 +1,24 @@
-const ObservableStore = require('obs-store')
-const log = require('loglevel')
-const BN = require('bn.js')
-const createId = require('../lib/random-id')
-const { bnToHex } = require('../lib/util')
+import ObservableStore from 'obs-store'
+import log from 'loglevel'
+import BN from 'bn.js'
+import createId from '../lib/random-id'
+import { bnToHex } from '../lib/util'
 import fetchWithTimeout from '../lib/fetch-with-timeout'
-const {
-  MAINNET_CODE,
-  ROPSTEN_CODE,
-  RINKEBY_CODE,
-  KOVAN_CODE,
-  GOERLI_CODE,
+
+import {
   ROPSTEN,
   RINKEBY,
   KOVAN,
   GOERLI,
   MAINNET,
-} = require('./network/enums')
-const networkTypeToIdMap = {
-  [ROPSTEN]: String(ROPSTEN_CODE),
-  [RINKEBY]: String(RINKEBY_CODE),
-  [KOVAN]: String(KOVAN_CODE),
-  [GOERLI]: String(GOERLI_CODE),
-  [MAINNET]: String(MAINNET_CODE),
-}
+  NETWORK_TYPE_TO_ID_MAP,
+} from './network/enums'
+
 const fetch = fetchWithTimeout({
   timeout: 30000,
 })
 
-class IncomingTransactionsController {
+export default class IncomingTransactionsController {
 
   constructor (opts = {}) {
     const {
@@ -49,7 +40,7 @@ class IncomingTransactionsController {
       })
     }
 
-    const initState = Object.assign({
+    const initState = {
       incomingTransactions: {},
       incomingTxLastFetchedBlocksByNetwork: {
         [ROPSTEN]: null,
@@ -57,8 +48,8 @@ class IncomingTransactionsController {
         [KOVAN]: null,
         [GOERLI]: null,
         [MAINNET]: null,
-      },
-    }, opts.initState)
+      }, ...opts.initState,
+    }
     this.store = new ObservableStore(initState)
 
     this.preferencesController.store.subscribe(pairwise((prevState, currState) => {
@@ -163,7 +154,7 @@ class IncomingTransactionsController {
     const newIncomingTransactions = {
       ...currentIncomingTxs,
     }
-    newTxs.forEach(tx => {
+    newTxs.forEach((tx) => {
       newIncomingTransactions[tx.hash] = tx
     })
 
@@ -183,10 +174,9 @@ class IncomingTransactionsController {
 
   async _fetchTxs (address, fromBlock, networkType) {
     let etherscanSubdomain = 'api'
-    const currentNetworkID = networkTypeToIdMap[networkType]
-    const supportedNetworkTypes = [ROPSTEN, RINKEBY, KOVAN, GOERLI, MAINNET]
+    const currentNetworkID = NETWORK_TYPE_TO_ID_MAP[networkType]?.networkId
 
-    if (supportedNetworkTypes.indexOf(networkType) === -1) {
+    if (!currentNetworkID) {
       return {}
     }
 
@@ -220,7 +210,7 @@ class IncomingTransactionsController {
         }
       })
 
-      const incomingTxs = remoteTxs.filter(tx => tx.txParams.to && tx.txParams.to.toLowerCase() === address.toLowerCase())
+      const incomingTxs = remoteTxs.filter((tx) => tx.txParams.to && tx.txParams.to.toLowerCase() === address.toLowerCase())
       incomingTxs.sort((a, b) => (a.time < b.time ? -1 : 1))
 
       let latestIncomingTxBlockNumber = null
@@ -267,8 +257,6 @@ class IncomingTransactionsController {
   }
 }
 
-module.exports = IncomingTransactionsController
-
 function pairwise (fn) {
   let first = true
   let cache
@@ -277,9 +265,8 @@ function pairwise (fn) {
       if (first) {
         first = false
         return fn(value, value)
-      } else {
-        return fn(cache, value)
       }
+      return fn(cache, value)
     } finally {
       cache = value
     }

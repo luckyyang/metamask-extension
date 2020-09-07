@@ -1,51 +1,57 @@
-import React from 'react'
 import assert from 'assert'
+import React from 'react'
 import { shallow } from 'enzyme'
 import sinon from 'sinon'
-import AmountMaxButton from '../amount-max-button.component.js'
-
-const propsMethodSpies = {
-  setAmountToMax: sinon.spy(),
-  setMaxModeTo: sinon.spy(),
-}
-
-const MOCK_EVENT = { preventDefault: () => {} }
-
-sinon.spy(AmountMaxButton.prototype, 'setMaxAmount')
+import AmountMaxButton from '../amount-max-button.component'
 
 describe('AmountMaxButton Component', function () {
   let wrapper
   let instance
 
-  beforeEach(() => {
+  const propsMethodSpies = {
+    setAmountToMax: sinon.spy(),
+    setMaxModeTo: sinon.spy(),
+  }
+
+  const MOCK_EVENT = { preventDefault: () => undefined }
+
+  before(function () {
+    sinon.spy(AmountMaxButton.prototype, 'setMaxAmount')
+  })
+
+  beforeEach(function () {
     wrapper = shallow((
       <AmountMaxButton
         balance="mockBalance"
         gasTotal="mockGasTotal"
         maxModeOn={false}
-        selectedToken={ { address: 'mockTokenAddress' } }
+        sendToken={ { address: 'mockTokenAddress' } }
         setAmountToMax={propsMethodSpies.setAmountToMax}
         setMaxModeTo={propsMethodSpies.setMaxModeTo}
         tokenBalance="mockTokenBalance"
       />
     ), {
       context: {
-        t: str => str + '_t',
-        metricsEvent: () => {},
+        t: (str) => `${str}_t`,
+        metricsEvent: () => undefined,
       },
     })
     instance = wrapper.instance()
   })
 
-  afterEach(() => {
+  afterEach(function () {
     propsMethodSpies.setAmountToMax.resetHistory()
     propsMethodSpies.setMaxModeTo.resetHistory()
     AmountMaxButton.prototype.setMaxAmount.resetHistory()
   })
 
-  describe('setMaxAmount', () => {
+  after(function () {
+    sinon.restore()
+  })
 
-    it('should call setAmountToMax with the correct params', () => {
+  describe('setMaxAmount', function () {
+
+    it('should call setAmountToMax with the correct params', function () {
       assert.equal(propsMethodSpies.setAmountToMax.callCount, 0)
       instance.setMaxAmount()
       assert.equal(propsMethodSpies.setAmountToMax.callCount, 1)
@@ -54,20 +60,20 @@ describe('AmountMaxButton Component', function () {
         [{
           balance: 'mockBalance',
           gasTotal: 'mockGasTotal',
-          selectedToken: { address: 'mockTokenAddress' },
+          sendToken: { address: 'mockTokenAddress' },
           tokenBalance: 'mockTokenBalance',
-        }]
+        }],
       )
     })
 
   })
 
-  describe('render', () => {
-    it('should render an element with a send-v2__amount-max class', () => {
+  describe('render', function () {
+    it('should render an element with a send-v2__amount-max class', function () {
       assert(wrapper.exists('.send-v2__amount-max'))
     })
 
-    it('should call setMaxModeTo and setMaxAmount when the checkbox is checked', () => {
+    it('should call setMaxModeTo and setMaxAmount when the checkbox is checked', function () {
       const {
         onClick,
       } = wrapper.find('.send-v2__amount-max').props()
@@ -79,11 +85,11 @@ describe('AmountMaxButton Component', function () {
       assert.equal(propsMethodSpies.setMaxModeTo.callCount, 1)
       assert.deepEqual(
         propsMethodSpies.setMaxModeTo.getCall(0).args,
-        [true]
+        [true],
       )
     })
 
-    it('should render the expected text when maxModeOn is false', () => {
+    it('should render the expected text when maxModeOn is false', function () {
       wrapper.setProps({ maxModeOn: false })
       assert.equal(wrapper.find('.send-v2__amount-max').text(), 'max_t')
     })

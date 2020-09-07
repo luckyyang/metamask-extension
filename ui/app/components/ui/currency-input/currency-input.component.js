@@ -21,7 +21,6 @@ export default class CurrencyInput extends PureComponent {
     maxModeOn: PropTypes.bool,
     nativeCurrency: PropTypes.string,
     onChange: PropTypes.func,
-    onBlur: PropTypes.func,
     useFiat: PropTypes.bool,
     hideFiat: PropTypes.bool,
     value: PropTypes.string,
@@ -84,7 +83,7 @@ export default class CurrencyInput extends PureComponent {
     })
   }
 
-  handleChange = decimalValue => {
+  handleChange = (decimalValue) => {
     const { currentCurrency: fromCurrency, conversionRate, onChange } = this.props
 
     const hexValue = this.shouldUseFiat()
@@ -97,10 +96,6 @@ export default class CurrencyInput extends PureComponent {
 
     this.setState({ hexValue, decimalValue })
     onChange(hexValue)
-  }
-
-  handleBlur = () => {
-    this.props.onBlur(this.state.hexValue)
   }
 
   renderConversionComponent () {
@@ -145,7 +140,6 @@ export default class CurrencyInput extends PureComponent {
         {...restProps}
         suffix={this.shouldUseFiat() ? fiatSuffix : nativeSuffix}
         onChange={this.handleChange}
-        onBlur={this.handleBlur}
         value={decimalValue}
         maxModeOn={maxModeOn}
         actionComponent={(

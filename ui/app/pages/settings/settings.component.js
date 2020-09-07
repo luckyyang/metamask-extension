@@ -1,16 +1,10 @@
 import React, { PureComponent } from 'react'
 import PropTypes from 'prop-types'
-import { Switch, Route, matchPath, withRouter } from 'react-router-dom'
+import { Switch, Route, matchPath } from 'react-router-dom'
+import classnames from 'classnames'
 import TabBar from '../../components/app/tab-bar'
-import c from 'classnames'
-import SettingsTab from './settings-tab'
-import NetworksTab from './networks-tab'
-import AdvancedTab from './advanced-tab'
-import InfoTab from './info-tab'
-import SecurityTab from './security-tab'
-import ContactListTab from './contact-list-tab'
 import {
-  DEFAULT_ROUTE,
+  ALERTS_ROUTE,
   ADVANCED_ROUTE,
   SECURITY_ROUTE,
   GENERAL_ROUTE,
@@ -25,6 +19,13 @@ import {
   CONTACT_MY_ACCOUNTS_VIEW_ROUTE,
   CONTACT_MY_ACCOUNTS_EDIT_ROUTE,
 } from '../../helpers/constants/routes'
+import SettingsTab from './settings-tab'
+import AlertsTab from './alerts-tab'
+import NetworksTab from './networks-tab'
+import AdvancedTab from './advanced-tab'
+import InfoTab from './info-tab'
+import SecurityTab from './security-tab'
+import ContactListTab from './contact-list-tab'
 
 class SettingsPage extends PureComponent {
   static propTypes = {
@@ -38,6 +39,7 @@ class SettingsPage extends PureComponent {
     initialBreadCrumbRoute: PropTypes.string,
     breadCrumbTextKey: PropTypes.string,
     initialBreadCrumbKey: PropTypes.string,
+    mostRecentOverviewPage: PropTypes.string.isRequired,
   }
 
   static contextTypes = {
@@ -45,11 +47,11 @@ class SettingsPage extends PureComponent {
   }
 
   render () {
-    const { history, backRoute, currentPath } = this.props
+    const { history, backRoute, currentPath, mostRecentOverviewPage } = this.props
 
     return (
       <div
-        className={c('main-container settings-page', {
+        className={classnames('main-container settings-page', {
           'settings-page--selected': currentPath !== SETTINGS_ROUTE,
         })}
       >
@@ -65,7 +67,7 @@ class SettingsPage extends PureComponent {
           { this.renderTitle() }
           <div
             className="settings-page__close-button"
-            onClick={() => history.push(DEFAULT_ROUTE)}
+            onClick={() => history.push(mostRecentOverviewPage)}
           />
         </div>
         <div className="settings-page__content">
@@ -129,7 +131,7 @@ class SettingsPage extends PureComponent {
     return currentPath !== NETWORKS_ROUTE && (
       <div className="settings-page__subheader">
         <div
-          className={c({ 'settings-page__subheader--link': initialBreadCrumbRoute })}
+          className={classnames({ 'settings-page__subheader--link': initialBreadCrumbRoute })}
           onClick={() => initialBreadCrumbRoute && history.push(initialBreadCrumbRoute)}
         >
           {subheaderText}
@@ -159,16 +161,17 @@ class SettingsPage extends PureComponent {
           { content: t('advanced'), description: t('advancedSettingsDescription'), key: ADVANCED_ROUTE },
           { content: t('contacts'), description: t('contactsSettingsDescription'), key: CONTACT_LIST_ROUTE },
           { content: t('securityAndPrivacy'), description: t('securitySettingsDescription'), key: SECURITY_ROUTE },
+          { content: t('alerts'), description: t('alertsSettingsDescription'), key: ALERTS_ROUTE },
           { content: t('networks'), description: t('networkSettingsDescription'), key: NETWORKS_ROUTE },
           { content: t('about'), description: t('aboutSettingsDescription'), key: ABOUT_US_ROUTE },
         ]}
-        isActive={key => {
+        isActive={(key) => {
           if (key === GENERAL_ROUTE && currentPath === SETTINGS_ROUTE) {
             return true
           }
           return matchPath(currentPath, { path: key, exact: true })
         }}
-        onSelect={key => history.push(key)}
+        onSelect={(key) => history.push(key)}
       />
     )
   }
@@ -190,6 +193,11 @@ class SettingsPage extends PureComponent {
           exact
           path={ADVANCED_ROUTE}
           component={AdvancedTab}
+        />
+        <Route
+          exact
+          path={ALERTS_ROUTE}
+          component={AlertsTab}
         />
         <Route
           exact
@@ -244,4 +252,4 @@ class SettingsPage extends PureComponent {
   }
 }
 
-export default withRouter(SettingsPage)
+export default SettingsPage

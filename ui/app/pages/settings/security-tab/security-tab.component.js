@@ -13,10 +13,12 @@ export default class SecurityTab extends PureComponent {
   static propTypes = {
     warning: PropTypes.string,
     history: PropTypes.object,
-    participateInMetaMetrics: PropTypes.bool,
-    setParticipateInMetaMetrics: PropTypes.func,
-    showIncomingTransactions: PropTypes.bool,
-    setShowIncomingTransactionsFeatureFlag: PropTypes.func,
+    participateInMetaMetrics: PropTypes.bool.isRequired,
+    setParticipateInMetaMetrics: PropTypes.func.isRequired,
+    showIncomingTransactions: PropTypes.bool.isRequired,
+    setShowIncomingTransactionsFeatureFlag: PropTypes.func.isRequired,
+    setUsePhishDetect: PropTypes.func.isRequired,
+    usePhishDetect: PropTypes.bool.isRequired,
   }
 
   renderSeedWords () {
@@ -33,7 +35,7 @@ export default class SecurityTab extends PureComponent {
             <Button
               type="danger"
               large
-              onClick={event => {
+              onClick={(event) => {
                 event.preventDefault()
                 this.context.metricsEvent({
                   eventOpts: {
@@ -69,7 +71,7 @@ export default class SecurityTab extends PureComponent {
           <div className="settings-page__content-item-col">
             <ToggleButton
               value={participateInMetaMetrics}
-              onToggle={value => setParticipateInMetaMetrics(!value)}
+              onToggle={(value) => setParticipateInMetaMetrics(!value)}
               offLabel={t('off')}
               onLabel={t('on')}
             />
@@ -95,7 +97,7 @@ export default class SecurityTab extends PureComponent {
           <div className="settings-page__content-item-col">
             <ToggleButton
               value={showIncomingTransactions}
-              onToggle={value => setShowIncomingTransactionsFeatureFlag(!value)}
+              onToggle={(value) => setShowIncomingTransactionsFeatureFlag(!value)}
               offLabel={t('off')}
               onLabel={t('on')}
             />
@@ -105,7 +107,33 @@ export default class SecurityTab extends PureComponent {
     )
   }
 
-  renderContent () {
+  renderPhishingDetectionToggle () {
+    const { t } = this.context
+    const { usePhishDetect, setUsePhishDetect } = this.props
+
+    return (
+      <div className="settings-page__content-row">
+        <div className="settings-page__content-item">
+          <span>{ t('usePhishingDetection') }</span>
+          <div className="settings-page__content-description">
+            { t('usePhishingDetectionDescription') }
+          </div>
+        </div>
+        <div className="settings-page__content-item">
+          <div className="settings-page__content-item-col">
+            <ToggleButton
+              value={usePhishDetect}
+              onToggle={(value) => setUsePhishDetect(!value)}
+              offLabel={t('off')}
+              onLabel={t('on')}
+            />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  render () {
     const { warning } = this.props
 
     return (
@@ -113,12 +141,9 @@ export default class SecurityTab extends PureComponent {
         { warning && <div className="settings-tab__error">{ warning }</div> }
         { this.renderSeedWords() }
         { this.renderIncomingTransactionsOptIn() }
+        { this.renderPhishingDetectionToggle() }
         { this.renderMetaMetricsOptIn() }
       </div>
     )
-  }
-
-  render () {
-    return this.renderContent()
   }
 }

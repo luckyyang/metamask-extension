@@ -1,10 +1,10 @@
-const assert = require('assert')
-const nodeify = require('../../../app/scripts/lib/nodeify')
+import assert from 'assert'
+import nodeify from '../../../app/scripts/lib/nodeify'
 
 describe('nodeify', function () {
   const obj = {
     foo: 'bar',
-    promiseFunc: function (a) {
+    promiseFunc (a) {
       const solution = this.foo + a
       return Promise.resolve(solution)
     },
@@ -12,13 +12,14 @@ describe('nodeify', function () {
 
   it('should retain original context', function (done) {
     const nodified = nodeify(obj.promiseFunc, obj)
-    nodified('baz', function (err, res) {
+    nodified('baz', (err, res) => {
       if (!err) {
         assert.equal(res, 'barbaz')
         done()
-      } else {
-        done(new Error(err.toString()))
+        return
       }
+
+      done(new Error(err.toString()))
     })
   })
 
@@ -32,28 +33,13 @@ describe('nodeify', function () {
     }
   })
 
-  it('no callback - should asyncly throw an error if underlying function does', function (done) {
-    const nodified = nodeify(async () => {
-      throw new Error('boom!')
-    }, obj)
-    process.prependOnceListener('uncaughtException', function (err) {
-      assert.ok(err, 'got expected error')
-      assert.ok(err.message.includes('boom!'), 'got expected error message')
-      done()
-    })
-    try {
-      nodified('baz')
-    } catch (err) {
-      done(new Error('should not have thrown an error synchronously'))
-    }
-  })
-
   it('sync functions - returns value', function (done) {
     const nodified = nodeify(() => 42)
     try {
       nodified((err, result) => {
         if (err) {
-          return done(new Error(`should not have thrown any error: ${err.message}`))
+          done(new Error(`should not have thrown any error: ${err.message}`))
+          return
         }
         assert.equal(42, result, 'got expected result')
       })
@@ -70,7 +56,8 @@ describe('nodeify', function () {
     try {
       nodified((err, result) => {
         if (result) {
-          return done(new Error('should not have returned any result'))
+          done(new Error('should not have returned any result'))
+          return
         }
         assert.ok(err, 'got expected error')
         assert.ok(err.message.includes('boom!'), 'got expected error message')

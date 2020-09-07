@@ -19,7 +19,7 @@ class Alert extends Component {
 
   animateIn (msg) {
     this.setState({
-      msg: msg,
+      msg,
       visible: true,
       className: 'visible',
     })
@@ -31,7 +31,7 @@ class Alert extends Component {
       className: 'hidden',
     })
 
-    setTimeout(_ => {
+    setTimeout((_) => {
       this.setState({ visible: false })
     }, 500)
 
@@ -53,5 +53,5 @@ Alert.propTypes = {
   visible: PropTypes.bool.isRequired,
   msg: PropTypes.string, /* eslint-disable-line react/no-unused-prop-types */
 }
-module.exports = Alert
+export default Alert
 

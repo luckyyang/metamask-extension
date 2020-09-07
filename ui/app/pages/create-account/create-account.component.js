@@ -2,19 +2,19 @@ import React, { Component } from 'react'
 import { Switch, Route, matchPath } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import classnames from 'classnames'
-import NewAccountCreateForm from './new-account.container'
-import NewAccountImportForm from './import-account'
-import ConnectHardwareForm from './connect-hardware'
 import {
   NEW_ACCOUNT_ROUTE,
   IMPORT_ACCOUNT_ROUTE,
   CONNECT_HARDWARE_ROUTE,
 } from '../../helpers/constants/routes'
+import NewAccountCreateForm from './new-account.container'
+import NewAccountImportForm from './import-account'
+import ConnectHardwareForm from './connect-hardware'
 
 export default class CreateAccountPage extends Component {
   renderTabs () {
     const { history, location: { pathname } } = this.props
-    const getClassNames = path => classnames('new-account__tabs__tab', {
+    const getClassNames = (path) => classnames('new-account__tabs__tab', {
       'new-account__tabs__selected': matchPath(pathname, {
         path,
         exact: true,
@@ -30,7 +30,7 @@ export default class CreateAccountPage extends Component {
           {this.context.t('import')}
         </div>
         <div className={getClassNames(CONNECT_HARDWARE_ROUTE)} onClick={() => history.push(CONNECT_HARDWARE_ROUTE)}>
-          {this.context.t('connect')}
+          {this.context.t('hardware')}
         </div>
       </div>
     )

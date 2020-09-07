@@ -1,5 +1,3 @@
-import SettingsTab from './settings-tab.component'
-import { compose } from 'recompose'
 import { connect } from 'react-redux'
 import {
   setCurrentCurrency,
@@ -8,9 +6,10 @@ import {
   setUseNativeCurrencyAsPrimaryCurrencyPreference,
   setParticipateInMetaMetrics,
 } from '../../../store/actions'
-import { preferencesSelector } from '../../../selectors/selectors'
+import { getPreferences } from '../../../selectors'
+import SettingsTab from './settings-tab.component'
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   const { appState: { warning }, metamask } = state
   const {
     currentCurrency,
@@ -19,7 +18,7 @@ const mapStateToProps = state => {
     useBlockie,
     currentLocale,
   } = metamask
-  const { useNativeCurrencyAsPrimaryCurrency } = preferencesSelector(state)
+  const { useNativeCurrencyAsPrimaryCurrency } = getPreferences(state)
 
   return {
     warning,
@@ -32,18 +31,16 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
-    setCurrentCurrency: currency => dispatch(setCurrentCurrency(currency)),
-    setUseBlockie: value => dispatch(setUseBlockie(value)),
-    updateCurrentLocale: key => dispatch(updateCurrentLocale(key)),
-    setUseNativeCurrencyAsPrimaryCurrencyPreference: value => {
+    setCurrentCurrency: (currency) => dispatch(setCurrentCurrency(currency)),
+    setUseBlockie: (value) => dispatch(setUseBlockie(value)),
+    updateCurrentLocale: (key) => dispatch(updateCurrentLocale(key)),
+    setUseNativeCurrencyAsPrimaryCurrencyPreference: (value) => {
       return dispatch(setUseNativeCurrencyAsPrimaryCurrencyPreference(value))
     },
     setParticipateInMetaMetrics: (val) => dispatch(setParticipateInMetaMetrics(val)),
   }
 }
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps)
-)(SettingsTab)
+export default connect(mapStateToProps, mapDispatchToProps)(SettingsTab)

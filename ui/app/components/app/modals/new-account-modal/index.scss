@@ -1,14 +1,29 @@
 .new-account-modal {
-  @extend %col-nowrap;
-  @extend %modal;
+  display: flex;
+  flex-flow: column nowrap;
+  background-color: $white;
+  border-radius: 10px;
+  box-shadow: 0 5px 16px rgba($black, 0.25);
 
   &__content {
     @extend %col-nowrap;
+
     padding: 1.5rem;
     border-bottom: 1px solid $Grey-100;
 
     &__header {
-      @extend %h3;
+      @include H4;
+
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    &__header-close {
+      color: #24292e;
+      background: none;
+      font-size: 1.1rem;
     }
   }
 
@@ -18,7 +33,12 @@
   }
 
   &__input {
-    @extend %input;
+    background: $white;
+    border: 1px solid $Grey-100;
+    box-sizing: border-box;
+    border-radius: 8px;
+    padding: 0.625rem 0.75rem;
+    font-size: 1.25rem;
     margin-top: 0.75rem;
 
     &::placeholder {
@@ -28,6 +48,7 @@
 
   &__footer {
     @extend %row-nowrap;
+
     padding: 1rem;
 
     button + button {

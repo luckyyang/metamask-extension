@@ -41,19 +41,18 @@ export default class PageContainer extends PureComponent {
     const { tabsComponent } = this.props
 
     if (!tabsComponent) {
-      return
+      return null
     }
 
     const numberOfTabs = React.Children.count(tabsComponent.props.children)
 
     return React.Children.map(tabsComponent.props.children, (child, tabIndex) => {
       return child && React.cloneElement(child, {
-        onClick: index => this.handleTabClick(index),
+        onClick: (index) => this.handleTabClick(index),
         tabIndex,
         isActive: numberOfTabs > 1 && tabIndex === this.state.activeTabIndex,
         key: tabIndex,
         className: 'page-container__tab',
-        activeClassName: 'page-container__tab--selected',
       })
     })
   }
@@ -61,7 +60,7 @@ export default class PageContainer extends PureComponent {
   renderActiveTabContent () {
     const { tabsComponent } = this.props
     let { children } = tabsComponent.props
-    children = children.filter(child => child)
+    children = children.filter((child) => child)
     const { activeTabIndex } = this.state
 
     return children[activeTabIndex]
@@ -76,9 +75,8 @@ export default class PageContainer extends PureComponent {
       return contentComponent
     } else if (tabsComponent) {
       return this.renderActiveTabContent()
-    } else {
-      return null
     }
+    return null
   }
 
   render () {

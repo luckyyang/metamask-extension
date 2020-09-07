@@ -1,7 +1,6 @@
 import classnames from 'classnames'
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
-import R from 'ramda'
 
 class SimpleDropdown extends Component {
   static propTypes = {
@@ -17,8 +16,8 @@ class SimpleDropdown extends Component {
 
   getDisplayValue () {
     const { selectedOption, options } = this.props
-    const matchesOption = option => option.value === selectedOption
-    const matchingOption = R.find(matchesOption)(options)
+    const matchesOption = (option) => option.value === selectedOption
+    const matchingOption = options.find(matchesOption)
     return matchingOption
       ? matchingOption.displayValue || matchingOption.value
       : selectedOption
@@ -41,7 +40,7 @@ class SimpleDropdown extends Component {
       <div>
         <div
           className="simple-dropdown__close-area"
-          onClick={event => {
+          onClick={(event) => {
             event.stopPropagation()
             this.handleClose()
           }}
@@ -84,4 +83,4 @@ class SimpleDropdown extends Component {
   }
 }
 
-module.exports = SimpleDropdown
+export default SimpleDropdown
