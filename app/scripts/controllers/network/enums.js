@@ -14,8 +14,8 @@ export const RINKEBY_NETWORK_ID = '4'
 export const GOERLI_NETWORK_ID = '5'
 export const KOVAN_NETWORK_ID = '42'
 // elaeth
-export const ELAETH_MAINNET_ID = '1' // the real value is 1
-export const ELAETH_TESTNET_ID = '3' // the real value is 3
+export const ELAETH_MAINNET_NETWORK_ID = '1' // the real value is 1
+export const ELAETH_TESTNET_NETWORK_ID = '3' // the real value is 3
 
 export const MAINNET_CHAIN_ID = '0x1'
 export const ROPSTEN_CHAIN_ID = '0x3'
@@ -32,7 +32,7 @@ export const KOVAN_DISPLAY_NAME = 'Kovan'
 export const MAINNET_DISPLAY_NAME = 'Main Ethereum Network'
 // elaeth
 export const ELAETH_MAINNET_DISPLAY_NAME = 'Main Ethereum Network(Elastos)'
-export const ELAETH_ELAETH_TESTNET_DISPLAY_NAME = 'Test Ethereum Network(Elastos)'
+export const ELAETH_TESTNET_DISPLAY_NAME = 'Test Ethereum Network(Elastos)'
 export const GOERLI_DISPLAY_NAME = 'Goerli'
 
 export const INFURA_PROVIDER_TYPES = [
@@ -41,6 +41,9 @@ export const INFURA_PROVIDER_TYPES = [
   KOVAN,
   MAINNET,
   GOERLI,
+  // elaeth
+  ELAETH_MAINNET,
+  ELAETH_TESTNET,
 ]
 
 export const NETWORK_TYPE_TO_ID_MAP = {

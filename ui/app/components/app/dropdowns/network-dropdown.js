@@ -203,10 +203,7 @@ class NetworkDropdown extends Component {
 
   render () {
     const { provider: { type: providerType, rpcTarget: activeNetwork }, setNetworksTabAddMode } = this.props
-    const rpcListDetail = this.props.frequentRpcListDetail.concat([
-      { nickname: 'Test Ethereum Network(Elastos)', rpcPrefs: {}, rpcUrl: 'http://rpc.elaeth.io', ticker: 'ELA' },
-      { nickname: 'Main Ethereum Network(Elastos)', rpcPrefs: {}, rpcUrl: 'http://mainrpc.elaeth.io', ticker: 'ELA' },
-    ])
+    const rpcListDetail = this.props.frequentRpcListDetail
     const isOpen = this.props.networkDropdownOpen
     const dropdownMenuItemStyle = {
       fontSize: '16px',
