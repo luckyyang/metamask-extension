@@ -52,6 +52,14 @@ function createNetworkAndChainIdMiddleware ({ network }) {
       netId = networkEnums.GOERLI_NETWORK_ID
       chainId = '0x05'
       break
+    // case 'elaethmainnet':
+    //   netId = networkEnums.ELAETH_MAINNET_NETWORK_ID
+    //   chainId = '0x05'
+    //   break
+    // case 'elaethtestnet':
+    //   netId = networkEnums.ELAETH_TESTNET_NETWORK_ID
+    //   chainId = '0x05'
+    //   break
     default:
       throw new Error(`createInfuraClient - unknown network "${network}"`)
   }

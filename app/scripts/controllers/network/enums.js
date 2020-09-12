@@ -42,8 +42,8 @@ export const INFURA_PROVIDER_TYPES = [
   MAINNET,
   GOERLI,
   // elaeth
-  ELAETH_MAINNET,
-  ELAETH_TESTNET,
+  // ELAETH_MAINNET,
+  // ELAETH_TESTNET,
 ]
 
 export const NETWORK_TYPE_TO_ID_MAP = {
